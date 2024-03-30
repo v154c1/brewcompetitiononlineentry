@@ -367,7 +367,7 @@ if ($totalRows_table_assignments > 0) {
 				if (!empty($score_style_data)) {
 
 					$score_style_data = explode("^",$score_style_data);
-			        
+
 					$query_entries = sprintf("SELECT id, brewBrewerID, brewStyle, brewCategorySort, brewCategory, brewSubCategory, brewInfo, brewJudgingNumber, brewName, brewPossAllergens, brewABV, brewJuiceSource, brewSweetnessLevel, brewMead1, brewMead2, brewMead3 FROM %s WHERE (brewCategorySort='%s' AND brewSubCategory='%s') AND brewReceived='1'", $prefix."brewing", $score_style_data[0], $score_style_data[1]);
 					if ($_SESSION['prefsDisplaySpecial'] == "J") $query_entries .= " ORDER BY brewJudgingNumber ASC;";
 					else $query_entries .= " ORDER BY id ASC;";
@@ -403,7 +403,7 @@ if ($totalRows_table_assignments > 0) {
 							$eval_all_judges = array();
 							$ordinal_position = array();
 							$ord_position = "";
-							
+
 							// Classic
 							if ($row_judging_prefs['jPrefsScoresheet'] == 1) {
 								$output_form = "full-scoresheet";
@@ -433,15 +433,20 @@ if ($totalRows_table_assignments > 0) {
 									$scoresheet_form = "structured_scoresheet.eval.php";
 								}
 
-								else {
-									$output_form = "full-scoresheet";
-									$scoresheet_form = "full_scoresheet.eval.php";
-								}
-								
+							else {
+								$output_form = "full-scoresheet";
+								$scoresheet_form = "full_scoresheet.eval.php";
 							}
-							
-			        		$style = style_number_const($row_entries['brewCategorySort'],$row_entries['brewSubCategory'],$_SESSION['style_set_display_separator'],0);
-							$style_display = $style.": ".$score_style_data[2];
+
+						}
+
+                        if ($row_judging_prefs['jPrefsScoresheet'] == 37) {
+                            $output_form = "holoubek-scoresheet";
+                            $scoresheet_form = "holoubek_scoresheet.eval.php";
+                        }
+
+		        		$style = style_number_const($row_entries['brewCategorySort'],$row_entries['brewSubCategory'],$_SESSION['style_set_display_separator'],0);
+						$style_display = $style.": ".$score_style_data[2];
 
 							$info_display = "";
 							$allergen_display = "";
@@ -452,10 +457,10 @@ if ($totalRows_table_assignments > 0) {
 							$sweetness_level_display = "";
 							$strength_display = "";
 							$additional_info = 0;
-							
+
 							if (!empty($row_entries['brewInfo'])) {
 								$additional_info++;
-								if (($_SESSION['prefsStyleSet'] == "BJCP2021") && ($row_entries['brewCategorySort'] == "02") && ($row_entries['brewSubCategory'] == "A")) $info_display .= "<strong>".$label_regional_variation; 
+								if (($_SESSION['prefsStyleSet'] == "BJCP2021") && ($row_entries['brewCategorySort'] == "02") && ($row_entries['brewSubCategory'] == "A")) $info_display .= "<strong>".$label_regional_variation;
 								else $info_display .= "<strong>".$label_required_info;
 								$info_display .= ":</strong> ".$row_entries['brewInfo'];
 							}
@@ -484,7 +489,7 @@ if ($totalRows_table_assignments > 0) {
 								$additional_info++;
 								$allergen_display .= "<strong>".$label_possible_allergens.":</strong> ".$row_entries['brewPossAllergens'];
 							}
-							
+
 							if (!empty($row_entries['brewABV'])) {
 								$additional_info++;
 								$abv_display .= "<strong>".$label_abv.":</strong> ".$row_entries['brewABV'];
@@ -511,17 +516,17 @@ if ($totalRows_table_assignments > 0) {
 								$juice_src_disp = rtrim($juice_src_disp,", ");
 
 								$juice_src_display .= "<strong>".$label_juice_source.":</strong> ".$juice_src_disp;
-							
+
 							}
 
 							$add_link = $base_url."index.php?section=evaluation&amp;go=scoresheet&amp;action=add&amp;filter=".$tbl_id."&amp;id=".$row_entries['id'];
-							
+
 			        		// Admin: Entry Evaluations
 			        		if ($admin) include (EVALS.'judging_admin.eval.php');
 
 			        		// Judging Dashboard
 			        		else include (EVALS.'judging_dashboard.eval.php');
-				            
+
 				            // Build table data
 				            if (($judging_open) || ($admin) || ((!$judging_open) && ($scored_by_user))) {
 					            if ($add_disabled) $table_assignment_data .= "<tr class=\"text-muted\">";
@@ -530,7 +535,7 @@ if ($totalRows_table_assignments > 0) {
 					        	$table_assignment_data .= "<td><a class=\"anchor\" name=\"".$number."\"></a>".$number."</td>";
 					        	$table_assignment_data .= "<td class=\"hidden-xs\">";
 					        	$table_assignment_data .= $style_display;
-					        	
+
 					        	if ($additional_info > 0) {
 					        		$table_assignment_data .= "<ul class=\"list-unstyled small\">";
 					        		if (!empty($info_display)) $table_assignment_data .= "<li><em>".str_replace("^",", ",$info_display)."</em></li>";
@@ -543,7 +548,7 @@ if ($totalRows_table_assignments > 0) {
 					        		if (!empty($strength_display)) $table_assignment_data .= "<li><em>".$strength_display."</em></li>";
 					        		$table_assignment_data .= "</ul>";
 					        	}
-						        	
+
 					        	$table_assignment_data .= "</td>";
 					        	$table_assignment_data .= "<td>".$notes."</td>";
 					        	$table_assignment_data .= "<td>".$eval_place_actions.$actions."</td>";
@@ -573,7 +578,7 @@ if ($totalRows_table_assignments > 0) {
 
 				    } // end if ($totalRows_entries > 0)
 
-				} // end if (!empty($score_style_data)  
+				} // end if (!empty($score_style_data)
 
 			} // end foreach
 
