@@ -123,7 +123,7 @@ if ($_SESSION['prefsEval'] == 1) {
 
         <div class="radio">
             <label>
-                <input type="radio" name="jPrefsScoresheet" value="37" id="jPrefsScoresheet_1" rel="" <?php if ($judging_scoresheet == "5") echo "CHECKED"; ?>/> Systém Holoubek
+                <input type="radio" name="jPrefsScoresheet" value="37" id="jPrefsScoresheet_1" rel="" <?php if ($judging_scoresheet == "37") echo "CHECKED"; ?>/> Systém Holoubek
             </label>
         </div>
 
