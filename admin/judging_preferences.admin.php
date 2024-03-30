@@ -112,6 +112,12 @@ if ($_SESSION['prefsEval'] == 1) {
             </label>
         </div>
 
+        <div class="radio">
+            <label>
+                <input type="radio" name="jPrefsScoresheet" value="37" id="jPrefsScoresheet_1" rel="" <?php if ($judging_scoresheet == "5") echo "CHECKED"; ?>/> Systém Holoubek
+            </label>
+        </div>
+
         <span id="helpBlock" class="help-block">
         <div class="btn-group" role="group" aria-label="queuedModal">
             <div class="btn-group" role="group">

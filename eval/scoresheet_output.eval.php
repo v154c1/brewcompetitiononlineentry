@@ -31,6 +31,8 @@ foreach ($scoresheet_display as $id) {
 	if ($row_eval['evalScoresheet'] == 2) include (EVALS.'checklist_output.eval.php');
 	if ($row_eval['evalScoresheet'] == 3) include (EVALS.'structured_output.eval.php');
     if ($row_eval['evalScoresheet'] == 4) include (EVALS.'structured_output.eval.php');
+    if ($row_eval['evalScoresheet'] == 37) include (EVALS.'holoubek_output.eval.php');
+
 
 } // end foreach ($scoresheet_display as $id)
 
