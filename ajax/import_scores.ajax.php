@@ -178,12 +178,12 @@ if ((isset($_SESSION['session_set_'.$prefix_session])) && (isset($_SESSION['logi
 				// echo $query_evals."<br>";
 
 				// If only a single evaluation, add eid to the singles array
-				if ($totalRows_evals == 1) {
-					$singles[] = $row_evals['eid'];
-					$not_imported_count ++;
-				}
+//				if ($totalRows_evals == 1) {
+//					$singles[] = $row_evals['eid'];
+//					$not_imported_count ++;
+//				}
 				
-				if ($totalRows_evals > 1) {
+				if ($totalRows_evals >= 1) {
 
 					// Loop through and compare each final score. 
 					do {
