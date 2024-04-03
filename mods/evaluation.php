@@ -64,18 +64,6 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     </style>
 </head>
 <body>
-
-
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample">Debug VARS</button>-->
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse">Details</button>-->
-
-<!--<pre class="collapse" id="collapseExample">-->
-<!---->
-<?php
-//
-//print_r($_SESSION);
-//?>
-<!--</pre>-->
 <?php
 if (!$admin_role) {
     die('not an admin!');
@@ -89,20 +77,67 @@ $tablesTable = $prefix . "judging_tables";
 $assignTable = $prefix . "judging_assignments";
 $brewersTables = $prefix . "brewer";
 
+function get_tables()
+{
+    global $tablesTable;
+    global $stylesTable;
+    global $connection;
 
-$style_sql = strtr('SELECT DISTINCT {tablesTable}.id as tableId, {tablesTable}.tableName as tableName, {stylesTable}.brewStyle as brewStyle, {stylesTable}.id as styleId, {stylesTable}.brewStyleGroup as brewStyleGroup, {stylesTable}.brewStyleNum as brewStyleNum FROM {tablesTable} LEFT JOIN {stylesTable} ON {tablesTable}.tableStyles = {stylesTable}.id',
-    array(
-        '{brewingTable}' => $brewingTable,
-        '{stylesTable}' => $stylesTable,
-        '{tablesTable}' => $tablesTable,
-    )
-);
-$ssql = mysqli_query($connection, $style_sql) or die (mysqli_error($connection));
-$row_ssql = mysqli_fetch_assoc($ssql);
-$totalRows_ssql = mysqli_num_rows($ssql);
+    $db = new MysqliDb($connection);
+    $db->join("$stylesTable styles", "styles.id=tables.tableStyles", "LEFT");
+    return $db->get("$tablesTable tables", null, "tables.id as tableId, tableName, styles.brewStyle, styles.id as styleId, styles.brewStyleGroup, styles.brewStyleNum");
 
-if ($totalRows_ssql > 0) {
-    do {
+}
+
+function get_empty_entries($styleCategory, $styleSubCategory)
+{
+    global $brewingTable;
+    global $connection;
+    global $evalTable;
+
+    $db = new MysqliDb($connection);
+    $db->where('brewCategory', $styleCategory);
+    $db->where('brewSubCategory', $styleSubCategory);
+    $db->where('brewPaid', 1);
+    $db->where('brewReceived', 1);
+    $db->join("$evalTable eval", "brewing.id=eval.eid", "LEFT");
+    $db->where('eval.id', null, 'IS');
+    return $db->get("$brewingTable brewing", null, "brewing.id as bid");
+
+}
+
+function get_judges($styleID)
+{
+    global $evalTable;
+    global $brewersTables;
+    global $connection;
+
+    $db = new MysqliDb($connection);
+    $db->join("$brewersTables brewers", "brewers.id=eval.evalJudgeInfo", "LEFT");
+    $db->where('eval.evalStyle', $styleID);
+    $db->orderBy('brewers.brewerLastName', 'asc');
+    return $db->get("$evalTable eval", null, "DISTINCT eval.evalJudgeInfo as jid, brewers.brewerFirstName, brewers.brewerLastName");
+
+}
+
+function get_entries($styleID, $judgeID)
+{
+    global $evalTable;
+    global $connection;
+
+    $db = new MysqliDb($connection);
+    $db->orderBy("eval.evalFinalScore", "desc");
+    $db->where('eval.evalStyle', $styleID);
+    $db->where('eval.evalJudgeInfo', $judgeID);
+    return $db->get("$evalTable eval", null, "eval.eid as eid, eval.evalFinalScore");
+
+}
+
+
+$styles = get_tables();
+
+if (count($styles) > 0) {
+    foreach ($styles as $row_ssql) {
 
         $style = $row_ssql['brewStyle'];
         $tableId = $row_ssql['tableId'];
@@ -111,70 +146,31 @@ if ($totalRows_ssql > 0) {
 
         echo "<h1>$style</h1>";
 
-        $empty_sql = strtr('SELECT {brewingTable}.id as bid FROM {brewingTable} LEFT  JOIN {evalTable} ON {brewingTable}.id = {evalTable}.eid WHERE {evalTable}.id IS NULL AND {brewingTable}.brewCategory = {styleCategory} AND {brewingTable}.brewSubCategory = \'{styleSubCategory}\' AND {brewingTable}.brewPaid = 1',
-            array(
-                '{brewingTable}' => $brewingTable,
-                '{brewersTable}' => $brewersTables,
-                '{evalTable}' => $evalTable,
-                '{styleId}' => $row_ssql['styleId'],
-                '{styleCategory}' => $styleCategory,
-                '{styleSubCategory}' => $styleSubCategory,
 
-            )
-        );
-//        print($empty_sql);
-        $psql = mysqli_query($connection, $empty_sql) or die (mysqli_error($connection));
-        $row_psql = mysqli_fetch_assoc($psql);
-        $totalRows_psql = mysqli_num_rows($psql);
+        $empty_entries = get_empty_entries($styleCategory, $styleSubCategory);
+
         echo '<br>';
-        if ($totalRows_psql > 0) {
-            echo '<h1>Vzorky bez hodnoceni</h1>';
-            echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>ID</th></tr>';
-            do {
-                echo '<tr><td>'.$row_psql['bid'].'</td></tr>';
-            } while ($row_psql = mysqli_fetch_assoc($psql));
+        if (count($empty_entries) > 0) {
+            echo '<h3>Vzorky bez hodnocení</h3>';
+            echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th></tr>';
+            foreach ($empty_entries as $row_psql) {
+                echo '<tr><td>' . $row_psql['bid'] . '</td></tr>';
+            }
             echo '</table>';
         }
 
-
-//        print_r($row_ssql);
-
-        $judge_sql = strtr('SELECT DISTINCT {evalTable}.evalJudgeInfo as jid, {brewersTable}.brewerFirstName, {brewersTable}.brewerLastName FROM {evalTable} JOIN {brewersTable} ON {brewersTable}.id = {evalTable}.evalJudgeInfo WHERE {evalTable}.evalStyle = {styleId}',
-            array(
-                '{brewingTable}' => $brewingTable,
-                '{brewersTable}' => $brewersTables,
-                '{evalTable}' => $evalTable,
-                '{styleId}' => $row_ssql['styleId'],
-            )
-        );
-        $jsql = mysqli_query($connection, $judge_sql) or die (mysqli_error($connection));
-        $row_jsql = mysqli_fetch_assoc($jsql);
-        $totalRows_jsql = mysqli_num_rows($jsql);
+        $judges = get_judges($row_ssql['styleId']);
         echo '<br>';
-        if ($totalRows_jsql > 0) {
-            do {
-                echo '<h2>' . $row_jsql['brewerFirstName'] . ' ' . $row_jsql['brewerLastName'] . '</h2>';
+        if (count($judges) > 0) {
+            foreach ($judges as $row_jsql) {
+                echo '<h2>' . $row_jsql['brewerLastName'] . ' ' . $row_jsql['brewerFirstName'] . '</h2>';
+
+                $entries = get_entries($row_ssql['styleId'], $row_jsql['jid']);
 
 
-                $eval_sql = strtr('SELECT  {evalTable}.eid as eid, {evalTable}.evalFinalScore FROM {evalTable} WHERE {evalTable}.evalJudgeInfo = {judgeId} ORDER BY {evalTable}.evalFinalScore DESC',
-                    array(
-                        '{brewingTable}' => $brewingTable,
-                        '{brewersTable}' => $brewersTables,
-                        '{evalTable}' => $evalTable,
-                        '{styleId}' => $row_ssql['styleId'],
-                        '{judgeId}' => $row_jsql['jid']
-                    )
-                );
-                $esql = mysqli_query($connection, $eval_sql) or die (mysqli_error($connection));
-                $row_esql = mysqli_fetch_assoc($esql);
-                $totalRows_esql = mysqli_num_rows($esql);
-//                echo '<br>';
-//                                print_r($row_jsql);
-//                echo '<br>';
-
-                echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>ID</th><th>score</th></tr>';
-                if ($totalRows_esql > 0) {
-                    do {
+                echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th><th>score</th></tr>';
+                if (count($entries) > 0) {
+                    foreach ($entries as $row_esql) {
                         ?>
                         <tr role="row">
                             <td><?php echo $row_esql['eid']; ?></td>
@@ -182,19 +178,12 @@ if ($totalRows_ssql > 0) {
                         </tr>
 
                         <?php
-//                        print_r($row_esql);
-//                        echo '<br>';
-
-                    } while ($row_esql = mysqli_fetch_assoc($esql));
+                    }
                 }
                 echo '</table>';
-
-            } while ($row_jsql = mysqli_fetch_assoc($jsql));
+            }
         }
-
-
-    } while ($row_ssql = mysqli_fetch_assoc($ssql));
-
+    }
 }
 ?>
 
