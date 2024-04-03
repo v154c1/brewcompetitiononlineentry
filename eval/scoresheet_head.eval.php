@@ -98,7 +98,7 @@ if (($nw_cider) && (empty($rank))) $show_rank = FALSE;
         </div>
     </div>
     <div class="col col-lg-2 col-md-2 col-sm-2 col-xs-2">
-        <p class="pull-right"><img style="max-width: 50px; min-width: 35px;" src="<?php if ($nw_cider) echo "https://www.nwcider.com/wp-content/themes/nwcider/assets/images/nw-cider-logo-2x.png"; else echo $images_url."aha_logo.jpg"; ?>"></p>
+        <p class="pull-right"><img style="max-width: 50px; min-width: 35px;" src="<?php if ($nw_cider) echo "https://www.nwcider.com/wp-content/themes/nwcider/assets/images/nw-cider-logo-2x.png"; else if ($_SESSION['contestLogo']) echo "$base_url"."user_images/".$_SESSION['contestLogo']; else echo $images_url."aha_logo.jpg"; ?>"></p>
     </div>
 </div><!-- ./row (header) -->
 <!-- Entry Info Row -->
