@@ -133,7 +133,7 @@ if ($totalRows_ssql > 0) {
                     $score = $scoreEntry * 2;
                     if ($score >= 90) {
                         $diplomClass = "goldenDiplom";
-                    } else if ($score >= 80) {
+                    } else if ($score > 80) {
                         $diplomClass = "silverDiplom";
                     } else if ($score > 70) {
                         $diplomClass = "bronzeDiplom";
