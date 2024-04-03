@@ -64,23 +64,23 @@ foreach ($html_output as $current_row) {
 $flaws_table .= "</table>";
 ?>
 <!-- Appearance -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_appearance; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalAppearanceScore']; ?></span>/<?php echo $appearance_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_appearance; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalAppearanceScore']; ?></span>/<?php echo $appearance_possible; ?></span></h5><h6>barva, pěna, čirost, držení, struktura, jiné</h6>
 
 
 <!-- Aroma -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_aroma; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalAromaScore']; ?></span>/<?php echo $aroma_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_aroma; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalAromaScore']; ?></span>/<?php echo $aroma_possible; ?></span></h5><h6>slad, chmel, kvašení, jiné</h6>
 
 <!-- Flavor -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_flavor; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalFlavorScore']; ?></span>/<?php echo $flavor_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_flavor; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalFlavorScore']; ?></span>/<?php echo $flavor_possible; ?></span></h5><h6>slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné</h6>
 
 <!-- Mouthfeel (Beer only) -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_mouthfeel ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalMouthfeelScore']; ?></span>/<?php echo $mouthfeel_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_mouthfeel ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalMouthfeelScore']; ?></span>/<?php echo $mouthfeel_possible; ?></span></h5><h6>tělo, sycení, hřejivost, sametovost, svíravost, jiné</h6>
 
 <!-- Overall Impression -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_overall_impression; ?><span class="pull-right"><span class="judge-score"><?php echo $overall_score_processed; ?></span>/<?php echo $overall_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_overall_impression; ?><span class="pull-right"><span class="judge-score"><?php echo $overall_score_processed; ?></span>/<?php echo $overall_possible; ?></span></h5><h6>daný styl, vady, požitek</h6>
 
 <!-- Style accuracy -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_style_accuracy; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalStyleAccuracy']; ?></span>/<?php echo $style_correctness_possible; ?></span></h5>
+<h5 class="header-h5 header-bdr-bottom"><?php echo $label_style_accuracy; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalStyleAccuracy']; ?></span>/<?php echo $style_correctness_possible; ?></span></h5><h6>musí korespondovat se zadáním stylu</h6>
 
 <h5><?php echo sprintf("%s: %s",$label_overall_impression,$label_comments); ?></h5>
 <p><?php echo htmlentities($row_eval['evalOverallComments']); ?></p>
