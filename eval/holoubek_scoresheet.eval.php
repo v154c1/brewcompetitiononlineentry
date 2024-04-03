@@ -181,6 +181,7 @@ asort($flaws);
 
 
 <!-- Flaws -->
+<!--
 <h3 class="section-heading"><?php echo $label_flaws; ?></h3>
 <?php foreach ($flaws as $flaw) {
     $flaw_none = FALSE;
@@ -218,8 +219,10 @@ asort($flaws);
                 </label>
             </div>
         </div>
+
     </div>
-<?php } ?>
+    <?php } ?>
+-->
 
 <?php
 ?>

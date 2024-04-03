@@ -85,10 +85,11 @@ $flaws_table .= "</table>";
 <h5><?php echo sprintf("%s: %s",$label_overall_impression,$label_comments); ?></h5>
 <p><?php echo htmlentities($row_eval['evalOverallComments']); ?></p>
 
+
 <!-- Total -->
-<h5 class="header-h5 header-bdr-bottom"><?php echo $label_flaws; ?></h5>
-<div style="margin-top: 10px;">
-    <?php echo $flaws_table; ?>
-</div>
+<!--<h5 class="header-h5 header-bdr-bottom">--><?php //echo $label_flaws; ?><!--</h5>-->
+<!--<div style="margin-top: 10px;">-->
+<!--    --><?php //echo $flaws_table; ?>
+<!--</div>-->
 
 <h5 class="header-h5 header-bdr-bottom"><?php echo $label_total; ?><span class="pull-right"><span class="judge-score"><?php echo $score; ?>&nbsp;*&nbsp;2&nbsp;=&nbsp;<?php echo $score2; ?></span>/100</span></h5>
