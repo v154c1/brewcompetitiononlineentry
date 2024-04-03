@@ -6,36 +6,41 @@ $brewingTable = $prefix . "brewing";
 $scoresTable = $prefix . "judging_scores";
 $brewersTables = $prefix . "brewer";
 
-$style_sql = strtr('SELECT DISTINCT brewStyle FROM {brewingTable}',
-    array(
-        '{brewingTable}' => $brewingTable
-    )
-);
+function get_styles()
+{
+    global $brewingTable;
+    global $connection;
+    $db = new MysqliDb($connection);
+    return $db->get($brewingTable, null, "DISTINCT brewStyle");
 
-$ssql = mysqli_query($connection, $style_sql) or die (mysqli_error($connection));
-$row_ssql = mysqli_fetch_assoc($ssql);
-$totalRows_ssql = mysqli_num_rows($ssql);
+}
 
-if ($totalRows_ssql > 0) {
-    do {
+function get_entries($style)
+{
+    global $brewingTable;
+    global $scoresTable;
+    global $brewersTables;
+    global $connection;
 
-        $style = $row_ssql['brewStyle'];
-        $query_sql = strtr('SELECT * FROM {brewingTable} LEFT JOIN {scoresTable} ON {brewingTable}.id = {scoresTable}.eid LEFT JOIN {brewersTable} ON {brewingTable}.brewBrewerID = {brewersTable}.id  WHERE `{brewingTable}`.`brewStyle` = \'{style}\'  AND {scoresTable}.scoreEntry > 35 ORDER BY {brewingTable}.brewCategorySort, {scoresTable}.scoreEntry DESC',
-            array(
-                '{brewingTable}' => $brewingTable,
-                '{scoresTable}' => $scoresTable,
-                '{brewersTable}' => $brewersTables,
-                '{style}' => $style
-            )
-        );
+    $db = new MysqliDb($connection);
+    $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
+    $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
+    $db->where('brewStyle', $style);
+    $db->where('scoreEntry > 35');
+    $db->orderBy("score.scoreEntry", "desc");
+    return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs");
+}
 
-        $sql = mysqli_query($connection, $query_sql) or die (mysqli_error($connection));
-        $row_sql = mysqli_fetch_assoc($sql);
-        $num_fields = mysqli_num_fields($sql);
-        $totalRows_sql = mysqli_num_rows($sql);
+$styles = get_styles();
+
+if (count($styles) > 0) {
+    foreach ($styles as $stylearray) {
+        $style = $stylearray['brewStyle'];
 
 
-        if ($totalRows_sql > 0) {
+        $entries = get_entries($style);
+
+        if (count($entries) > 0) {
             ?>
             <h3><?php echo $style; ?></h3>
 
@@ -74,7 +79,7 @@ if ($totalRows_ssql > 0) {
                 </tr>
                 </thead>
                 <tbody<?php
-                do {
+                foreach ($entries as $row_sql) {
                     $score = '';
                     $diplomClass = '';
 
@@ -83,34 +88,35 @@ if ($totalRows_ssql > 0) {
                         $score = $scoreEntry * 2;
                         if ($score >= 90) {
                             $diplomClass = "goldenDiplom";
-                            $trophyClass="text-gold";
+                            $trophyClass = "text-gold";
                         } else if ($score > 80) {
                             $diplomClass = "silverDiplom";
-                            $trophyClass="text-silver";
+                            $trophyClass = "text-silver";
                         } else if ($score > 70) {
                             $diplomClass = "bronzeDiplom";
-                            $trophyClass="text-bronze";
+                            $trophyClass = "text-bronze";
                         }
                     }
 
-                ?>
-                <tr role="row" class="odd">
-                    <td width="1%" nowrap=""><span class="fa fa-lg fa-trophy <?php echo $trophyClass; ?> "></span></td>
-                    <td width="25%"><?php
-                        echo $row_sql['brewBrewerFirstName'] . " " . $row_sql['brewBrewerLastName'];
-                        if ($row_sql['brewCoBrewer']) {
-                            echo '<br>'.$label_cobrewer.':&nbsp;'.$row_sql['brewCoBrewer'];
-                        }
-                        ?></td>
-                    <td><?php echo $row_sql['brewName'];?></td>
-                    <td><?php echo $score;?></td>
-                    <td width="25%"><?php echo $row_sql['brewStyle']; ?></td>
-                    <td width="25%"><?php echo $row_sql['brewerClubs'];?></td>
-                </tr>
+                    ?>
+                    <tr role="row" class="odd">
+                        <td width="1%" nowrap=""><span class="fa fa-lg fa-trophy <?php echo $trophyClass; ?> "></span>
+                        </td>
+                        <td width="25%"><?php
+                            echo $row_sql['brewBrewerFirstName'] . " " . $row_sql['brewBrewerLastName'];
+                            if ($row_sql['brewCoBrewer']) {
+                                echo '<br>' . $label_cobrewer . ':&nbsp;' . $row_sql['brewCoBrewer'];
+                            }
+                            ?></td>
+                        <td><?php echo $row_sql['brewName']; ?></td>
+                        <td><?php echo $score; ?></td>
+                        <td width="25%"><?php echo $row_sql['brewStyle']; ?></td>
+                        <td width="25%"><?php echo $row_sql['brewerClubs']; ?></td>
+                    </tr>
 
-                <?php
+                    <?php
 
- } while ($row_sql = mysqli_fetch_assoc($sql));
+                }
                 ?>
                 </tbody>
             </table>
@@ -118,7 +124,7 @@ if ($totalRows_ssql > 0) {
 
             <?php
         }
-    } while ($row_ssql = mysqli_fetch_assoc($ssql));
+    }
 }
 ?>
 
