@@ -52,17 +52,18 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         @media print {
             @page {
 
-                size: a4 portrait;
+                /*size: a4 portrait;*/
+                size: 75mm 38mm;
 
             }
 
             body {
-
-                margin-left: 20mm;
-                margin-right: 20mm;
-                margin-top: 20mm;
-                margin-bottom: 10mm;
-                width: 170mm;
+                margin: 0;
+                /*margin-left: 20mm;*/
+                /*margin-right: 20mm;*/
+                /*margin-top: 20mm;*/
+                /*margin-bottom: 10mm;*/
+                /*width: 170mm;*/
             }
         }
 
@@ -74,9 +75,13 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         }
 
         .label {
-            width: 85mm;
-            height: 50mm;
+            padding: 2mm;
+            width: 75mm;
+            height: 38mm;
+            /*width: 85mm;*/
+            /*height: 50mm;*/
             break-inside: avoid;
+            break-after: page;
             flex: auto 0 0;
             display: flex;
             flex-direction: row;
@@ -85,19 +90,27 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             color: black;
         }
 
+        .label:last-of-type {
+            break-after: auto;
+        }
+
         .label-title {
             font-size: 5mm;
             flex: 100% 1 1;
         }
 
         .label-number {
-            font-size: 20mm;
+            font-size: 15mm;
             flex: auto 1 1;
+            height: 25mm;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
         }
 
         .label-qr {
-            width: 30mm;
-            height: 30mm;
+            width: 25mm;
+            height: 25mm;
             flex: auto 0 0;
         }
 
@@ -141,81 +154,65 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     $brewersTables = $prefix . "brewer";
 
 
-    $style_sql = strtr('SELECT DISTINCT brewStyle FROM {brewingTable}',
-        array(
-            '{brewingTable}' => $brewingTable
-        )
-    );
-    $ssql = mysqli_query($connection, $style_sql) or die (mysqli_error($connection));
-    $row_ssql = mysqli_fetch_assoc($ssql);
-    $totalRows_ssql = mysqli_num_rows($ssql);
+    function get_styles()
+    {
+        global $brewingTable;
+        global $connection;
+        $db = new MysqliDb($connection);
+        return $db->get($brewingTable, null, "DISTINCT brewStyle");
 
-    $stmt = mysqli_prepare($connection, strtr('SELECT * FROM {brewingTable} WHERE `{brewingTable}`.`brewStyle` = ? ORDER BY {brewingTable}.id ASC',
-        array(
-            '{brewingTable}' => $brewingTable,
-            '{scoresTable}' => $scoresTable,
-            '{brewersTable}' => $brewersTables
-        )));
-    mysqli_stmt_bind_param($stmt, 's', $style);
+    }
 
-    if ($totalRows_ssql > 0) {
-    do {
+    function get_entries($style)
+    {
+        global $brewingTable;
+        global $connection;
+
+        $db = new MysqliDb($connection);
+        $db->where('brewStyle', $style);
+        $db->where('brewPaid', 1);
+
+        return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewStyle");
+    }
+
+    $styles = get_styles();
+
+    foreach ($styles
+
+    as $row_ssql) {
 
     $style = $row_ssql['brewStyle'];
-    //        echo "<h1>$style</h1>";
 
-    mysqli_stmt_execute($stmt);
-    $sql = mysqli_stmt_get_result($stmt);
-    $row_sql = mysqli_fetch_assoc($sql);
-    $num_fields = mysqli_num_fields($sql);
-    $totalRows_sql = mysqli_num_rows($sql);
+    $entries = get_entries($style);
 
+    foreach ($entries
 
-    if ($totalRows_sql > 0) {
-
-    do {
+    as $row_sql) {
     ?>
     <div class="label">
         <?php
         $id_prefix = '';
-        if ($row_sql['brewStyle'][1]==' ') {
+        if ($row_sql['brewStyle'][1] == ' ') {
             $id_prefix = $row_sql['brewStyle'][0];
         }
         echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $id_prefix. $row_sql['id'] . '</div>';
-        // Get the protocol
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
+        echo '<div class="label-number">' . $id_prefix . $row_sql['brewId'] . '</div>';
 
-        // Get the domain name
-        $domain = $_SERVER['HTTP_HOST'];
-
-        // Get path to current script, remove script itself and last slash
-        $path = dirname($_SERVER['PHP_SELF']);
-
-        require_once (CLASSES.'qr_code/qrClass.php');
+        require_once(CLASSES . 'qr_code/qrClass.php');
         $qr = new qRClas();
 
-        $qrcode_url = $base_url."index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['id'];
+        $qrcode_url = $base_url . "index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['id'];
         $qrcode_url = urlencode($qrcode_url);
 
-        $qr->qRCreate($qrcode_url,"100x100","UTF-8");
+        $qr->qRCreate($qrcode_url, "100x100", "UTF-8");
         $qrcode_link = $qr->url;
 
-        // Get path to parent directory
-        //$parentPath = dirname($path);
-        //$judgingURL = $protocol . $domain . $parentPath . "/index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['id'];
-//        echo "<img class=\"label-qr\" src=\"https://chart.googleapis.com/chart?cht=qr&chs=100x100&chl=" . urlencode($judgingURL) . "\">";
         echo "<img class=\"label-qr\" src=\"$qrcode_link\">";
         echo "</div>\n";
-        //        echo "<br><br>";
-
-        } while ($row_sql = mysqli_fetch_assoc($sql));
         }
         ?>
 
-        <!--        </table> -->
         <?php
-        } while ($row_ssql = mysqli_fetch_assoc($ssql));
         }
         ?>
 
