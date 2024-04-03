@@ -25,6 +25,7 @@ asort($flaws);
 
 <!-- Appearance -->
 <h3 class="section-heading"><?php echo $label_appearance; ?></h3>
+<h4>barva, pěna, čirost, držení, struktura, jiné</h4>
 <!-- Appearance Score -->
 <div class="form-group">
     <div class="row">
@@ -50,7 +51,7 @@ asort($flaws);
 
 <!-- Aroma -->
 <h3 class="section-heading"><?php echo $label_aroma; ?></h3>
-
+<h4>slad, chmel, kvašení, jiné</h4>
 
 <div class="form-group">
     <div class="row">
@@ -78,6 +79,7 @@ asort($flaws);
 
 <!-- Flavor -->
 <h3 class="section-heading"><?php echo $label_flavor; ?></h3>
+<h4>slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné</h4>
 <!-- Flavor Score -->
 <div class="form-group">
     <div class="row">
@@ -103,6 +105,7 @@ asort($flaws);
 
 <!-- Mouthfeel -->
 <h3 class="section-heading"><?php echo $label_mouthfeel; ?></h3>
+<h4>tělo, sycení, hřejivost, sametovost, svíravost, jiné</h4>
 <!-- Mouthfeel Score -->
 <div class="form-group">
     <div class="row">
@@ -128,6 +131,7 @@ asort($flaws);
 
 <!-- Overall Impression -->
 <h3 class="section-heading"><?php echo $label_overall_impression; ?></h3>
+<h4>daný styl, vady, požitek</h4>
 <div class="form-group">
     <div class="row">
         <div class="col-md-3 col-sm-12 col-xs-12">
@@ -150,25 +154,50 @@ asort($flaws);
     </div>
 </div>
 
-<!-- Style Accuracy -->
+<h3 class="section-heading"><?php echo $label_style_accuracy; ?></h3>
+<h6>musí korespondovat se zadáním stylu</h6>
+
 <div class="form-group">
     <div class="row">
         <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalStyleAccuracy"><?php echo $label_style_accuracy; ?></label>
+            <label for="evalStyleAccuracy"><?php echo $label_score; ?>
+                (<?php echo $style_correctness_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
         </div>
-        <div class="col-md-9 col-sm-12 col-xs-12 small">
-            <div style="margin-left: 10px">
-                <input class="form-control score-choose" type="text" name="evalStyleAccuracy" data-provide="slider"
-                       data-slider-ticks="[0,10]"
-                       data-slider-ticks-labels='["<?php echo $label_not_style; ?>", "<?php echo $label_classic_example; ?>"]'
-                       data-slider-min="0" data-slider-max="10" data-slider-step="10"
-                       data-slider-value="<?php if ($action == "edit") echo $row_eval['evalStyleAccuracy']; else echo "0"; ?>"
-                       data-slider-tooltip="hide">
-            </div>
+        <div class="col-md-9 col-sm-12 col-xs-12">
+            <select class="form-control selectpicker score-choose" name="evalStyleAccuracy" id="type" data-size="10"
+                    required>
+                <option value=""></option>
+                <?php for ($i = $style_correctness_points; $i >= 0; $i-=10) {
+                    if (($action == "edit") && ($i == $row_eval['evalStyleAccuracy'])) $selected = "selected";
+                    else $selected = "";
+                    ?>
+                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
+                <?php } ?>
+            </select>
+            <div class="help-block small with-errors"></div>
         </div>
     </div>
-    <div class="help-block small with-errors"></div>
 </div>
+
+<!-- Style Accuracy -->
+<!--<div class="form-group">-->
+<!--    <div class="row">-->
+<!--        <div class="col-md-3 col-sm-12 col-xs-12">-->
+<!--            <label for="evalStyleAccuracy">--><?php //echo $label_style_accuracy; ?><!--</label>-->
+<!--        </div>-->
+<!--        <div class="col-md-9 col-sm-12 col-xs-12 small">-->
+<!--            <div style="margin-left: 10px">-->
+<!--                <input class="form-control score-choose" type="text" name="evalStyleAccuracy" data-provide="slider"-->
+<!--                       data-slider-ticks="[0,10]"-->
+<!--                       data-slider-ticks-labels='["--><?php //echo $label_not_style; ?><!--", "--><?php //echo $label_classic_example; ?><!--"]'-->
+<!--                       data-slider-min="0" data-slider-max="10" data-slider-step="10"-->
+<!--                       data-slider-value="--><?php //if ($action == "edit") echo $row_eval['evalStyleAccuracy']; else echo "0"; ?><!--"-->
+<!--                       data-slider-tooltip="hide">-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="help-block small with-errors"></div>-->
+<!--</div>-->
 
 <div class="form-group">
     <label for="evalOverallComments"><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></label>
