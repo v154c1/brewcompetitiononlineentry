@@ -158,7 +158,7 @@ if ($judging_scoresheet == 37) {
     $output_form = "holoubek_output.eval.php";
     $scoresheet_form = "holoubek_scoresheet.eval.php";
     $process_type = "process-eval-holoubek";
-    $scoresheet_version = "Systém Holoubek";
+    $scoresheet_version = "Varianta hodnocení stylu";
 }
 /** 
  * When a user is adding a new evaluation.
