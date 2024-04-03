@@ -177,8 +177,12 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     ?>
     <div class="label">
         <?php
+        $id_prefix = '';
+        if ($row_sql['brewStyle'][1]==' ') {
+            $id_prefix = $row_sql['brewStyle'][0];
+        }
         echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $row_sql['id'] . '</div>';
+        echo '<div class="label-number">' . $id_prefix. $row_sql['id'] . '</div>';
         // Get the protocol
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
 
