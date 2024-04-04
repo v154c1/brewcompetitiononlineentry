@@ -88,6 +88,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
             flex-wrap: wrap;
             color: black;
+            border: none !important;
         }
 
         .label:last-of-type {
