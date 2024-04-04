@@ -87,7 +87,7 @@ $scoresTable = $prefix . "judging_scores";
 $brewersTables = $prefix . "brewer";
 
 
-$style_sql = strtr('SELECT DISTINCT brewStyle FROM {brewingTable}',
+$style_sql = strtr('SELECT DISTINCT brewStyle FROM {brewingTable} ORDER BY brewStyle ASC',
     array(
         '{brewingTable}' => $brewingTable
     )
@@ -103,7 +103,7 @@ if ($totalRows_ssql > 0) {
         echo "<h1>$style</h1>";
 
 //$query_sql = sprintf($query_sql = "SELECT * FROM %s LEFT JOIN %s ON %s.id = %s.eid LEFT JOIN %s ON %s.brewBrewerID = %s.id ORDER BY %s.brewCategorySort", $brewingTable, $scoresTable, $brewingTable, $scoresTable, $brewersTables, $brewingTable, $brewersTables, $brewingTable);
-        $query_sql = strtr('SELECT * FROM {brewingTable} LEFT JOIN {scoresTable} ON {brewingTable}.id = {scoresTable}.eid LEFT JOIN {brewersTable} ON {brewingTable}.brewBrewerID = {brewersTable}.id  WHERE `{brewingTable}`.`brewStyle` = \'{style}\' ORDER BY {brewingTable}.brewCategorySort, {scoresTable}.scoreEntry DESC',
+        $query_sql = strtr('SELECT * FROM {brewingTable} LEFT JOIN {scoresTable} ON {brewingTable}.id = {scoresTable}.eid LEFT JOIN {brewersTable} ON {brewingTable}.brewBrewerID = {brewersTable}.id  WHERE `{brewingTable}`.`brewStyle` = \'{style}\' ORDER BY {scoresTable}.scoreEntry DESC',
             array(
                 '{brewingTable}' => $brewingTable,
                 '{scoresTable}' => $scoresTable,
