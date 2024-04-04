@@ -98,6 +98,8 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         .label-title {
             font-size: 5mm;
             flex: 100% 1 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .label-number {
@@ -149,7 +151,8 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         global $brewingTable;
         global $connection;
         $db = new MysqliDb($connection);
-        return $db->get($brewingTable, null, "DISTINCT brewStyle");
+        $db->orderBy("brewStyle", "asc");
+        return $db->get("$brewingTable brewing", null, "DISTINCT brewStyle");
 
     }
 
@@ -161,6 +164,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         $db = new MysqliDb($connection);
         $db->where('brewStyle', $style);
 //        $db->where('brewPaid', 1);
+        $db->orderBy("brewing.id", "asc");
 
         return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewStyle");
     }
