@@ -85,6 +85,7 @@ function get_tables()
 
     $db = new MysqliDb($connection);
     $db->join("$stylesTable styles", "styles.id=tables.tableStyles", "LEFT");
+    $db->orderBy('styles.brewStyle', 'asc');
     return $db->get("$tablesTable tables", null, "tables.id as tableId, tableName, styles.brewStyle, styles.id as styleId, styles.brewStyleGroup, styles.brewStyleNum");
 
 }
@@ -102,6 +103,7 @@ function get_empty_entries($styleCategory, $styleSubCategory)
     $db->where('brewReceived', 1);
     $db->join("$evalTable eval", "brewing.id=eval.eid", "LEFT");
     $db->where('eval.id', null, 'IS');
+    $db->orderBy("brewing.id", "asc");
     return $db->get("$brewingTable brewing", null, "brewing.id as bid");
 
 }
