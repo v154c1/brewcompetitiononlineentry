@@ -11,7 +11,13 @@ if (!function_exists('fputcsv')) {
 }
 require_once('../paths.php');
 require_once(CONFIG . 'bootstrap.php');
+$admin_role = FALSE;
+if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
 
+if (!$admin_role) {
+    echo "<h1>Access denied!</h1>";
+    die;
+}
 
 $output_csv = FALSE;
 $fp = null;
