@@ -131,17 +131,6 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 <body>
 
 
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample">Debug VARS</button>-->
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse">Details</button>-->
-
-<!--<pre class="collapse" id="collapseExample">-->
-<!---->
-<?php
-//
-//print_r($_SESSION);
-//?>
-<!--</pre>-->
-
 <div class="label-container">
     <?php
     if (!$admin_role) {
@@ -170,7 +159,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
         $db = new MysqliDb($connection);
         $db->where('brewStyle', $style);
-        $db->where('brewPaid', 1);
+//        $db->where('brewPaid', 1);
 
         return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewStyle");
     }
@@ -196,12 +185,12 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             $id_prefix = $row_sql['brewStyle'][0];
         }
         echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $id_prefix . $row_sql['brewId'] . '</div>';
+        echo '<div class="label-number">' . $id_prefix . '-',$row_sql['brewId'] . '</div>';
 
         require_once(CLASSES . 'qr_code/qrClass.php');
         $qr = new qRClas();
 
-        $qrcode_url = $base_url . "index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['id'];
+        $qrcode_url = $base_url . "index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['brewId'];
         $qrcode_url = urlencode($qrcode_url);
 
         $qr->qRCreate($qrcode_url, "100x100", "UTF-8");
