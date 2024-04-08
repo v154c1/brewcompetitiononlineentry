@@ -16,6 +16,7 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
         global $brewingTable;
         global $connection;
         $db = new MysqliDb($connection);
+        $db->orderBy("brewStyle", "asc");
         return $db->get($brewingTable, null, "DISTINCT brewStyle");
 
     }
