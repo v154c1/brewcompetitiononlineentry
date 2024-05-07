@@ -434,7 +434,12 @@ if ($totalRows_table_assignments > 0) {
                             $output_form = "holoubek-scoresheet";
                             $scoresheet_form = "holoubek_scoresheet.eval.php";
                         }
-						
+
+                        if ($row_judging_prefs['jPrefsScoresheet'] == 38) {
+                            $output_form = "cech-scoresheet";
+                            $scoresheet_form = "cech_scoresheet.eval.php";
+                        }
+
 		        		$style = style_number_const($row_entries['brewCategorySort'],$row_entries['brewSubCategory'],$_SESSION['style_set_display_separator'],0);
 						$style_display = $style.": ".$score_style_data[2];
 

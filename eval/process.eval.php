@@ -602,6 +602,87 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
         }
     }
 
+    if ($section == "process-eval-cech") {
+        $evalFlaws = "";
+
+
+
+
+        if (($action == "add") || ($action == "edit")) {
+
+            $update_table = $prefix . "evaluation";
+            $data = array(
+                'eid' => $eid,
+                'uid' => $uid,
+                'evalJudgeInfo' => $evalJudgeInfo,
+                'evalScoresheet' => $evalScoresheet,
+                'evalStyle' => $evalStyle,
+                'evalSpecialIngredients' => $evalSpecialIngredients,
+                'evalOtherNotes' => $evalOtherNotes,
+                'evalAromaScore' => $evalAromaScore,
+                'evalAromaChecklist' => $evalAromaChecklist,
+                'evalAppearanceScore' => $evalAppearanceScore,
+                'evalAppearanceChecklist' => $evalAppearanceChecklist,
+                'evalFlavorScore' => $evalFlavorScore,
+                'evalFlavorChecklist' => $evalFlavorChecklist,
+                'evalMouthfeelScore' => $evalMouthfeelScore,
+                'evalMouthfeelChecklist' => $evalMouthfeelChecklist,
+                'evalOverallScore' => $evalOverallScore,
+                'evalOverallComments' => $evalOverallComments,
+                'evalStyleAccuracy' => $evalStyleAccuracy,
+                'evalTechMerit' => $evalTechMerit,
+                'evalIntangibles' => $evalIntangibles,
+                'evalFlaws' => $evalFlaws,
+                'evalInitialDate' => time(),
+                'evalUpdatedDate' => time(),
+                'evalToken' => $token,
+                'evalTable' => $evalTable,
+                'evalFinalScore' => $evalFinalScore,
+                'evalMiniBOS' => $evalMiniBOS,
+                'evalBottle' => $evalBottle,
+                'evalBottleNotes' => $evalBottleNotes,
+                'evalPosition' => $evalPosition
+            );
+
+        }
+
+
+        if ($action == "add") {
+
+            $result = $db_conn->insert($update_table, $data);
+            if (!$result) {
+                $error_output[] = $db_conn->getLastError();
+                $errors = TRUE;
+            }
+
+            if (!empty($error_output)) $_SESSION['error_output'] = $error_output;
+
+            if ($errors) $insertGoTo = $_POST['relocate'] . "&msg=3";
+            $insertGoTo = prep_redirect_link($insertGoTo);
+            $redirect_go_to = sprintf("Location: %s", $insertGoTo);
+            header($redirect_go_to);
+
+        } // if ($action == "add")
+
+        if ($action == "edit") {
+
+            $db_conn->where('id', $id);
+            $result = $db_conn->update($update_table, $data);
+            if (!$result) {
+                $error_output[] = $db_conn->getLastError();
+                $errors = TRUE;
+            }
+
+            if (!empty($error_output)) $_SESSION['error_output'] = $error_output;
+
+            if ($errors) $insertGoTo = $_POST['relocate'] . "&msg=3";
+            $insertGoTo = prep_redirect_link($insertGoTo);
+            $redirect_go_to = sprintf("Location: %s", $insertGoTo);
+            header($redirect_go_to);
+
+        }
+    }
+
 } else {
 
 	$redirect = $base_url."index.php?msg=98";
