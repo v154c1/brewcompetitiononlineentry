@@ -176,6 +176,12 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     as $row_ssql) {
 
     $style = $row_ssql['brewStyle'];
+    $id_prefix = '';
+    $pattern = "/(?<=\s|^)[A-Z](?=\s|-|$)/";
+
+    if (preg_match($pattern, $style, $matches)) {
+        $id_prefix = $matches[0];
+    }
 
     $entries = get_entries($style);
 
@@ -185,12 +191,9 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     ?>
     <div class="label">
         <?php
-        $id_prefix = '';
-        if ($row_sql['brewStyle'][1] == ' ') {
-            $id_prefix = $row_sql['brewStyle'][0];
-        }
+
         echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $id_prefix . '-',$row_sql['brewId'] . '</div>';
+        echo '<div class="label-number">' . $id_prefix . '-', $row_sql['brewId'] . '</div>';
 
         require_once(CLASSES . 'qr_code/qrClass.php');
         $qr = new qRClas();
