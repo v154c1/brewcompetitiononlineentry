@@ -59,7 +59,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         }
 
         .bronzeDiplom {
-            background-color: saddlebrown;
+            background-color: #bfa396;
         }
     </style>
 </head>
