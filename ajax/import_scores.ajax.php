@@ -22,6 +22,9 @@ if ((isset($_SESSION['session_set_'.$prefix_session])) && (isset($_SESSION['logi
 
 	// First, query DB to see if any evaluations have been recorded
 	$query_eval = sprintf("SELECT * FROM %s",$prefix."evaluation");
+    if ($filter != "default") {
+        $query_eval = $query_eval. " WHERE evalTable = " . $filter;
+    }
 	$eval = mysqli_query($connection,$query_eval) or die (mysqli_error($connection));
 	$row_eval = mysqli_fetch_assoc($eval);
 	$totalRows_eval = mysqli_num_rows($eval);
