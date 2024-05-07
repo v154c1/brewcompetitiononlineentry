@@ -67,7 +67,7 @@ if (isset($_GET['csv'])) {
         });
     </script>
 </head>
-<tbody>
+<body>
 
 <a href="?csv">Stáhnout CSV</a><br>
 <table class="table table-responsive table-striped table-bordered dataTable no-footer" id="entryTable">
