@@ -160,6 +160,13 @@ if ($judging_scoresheet == 37) {
     $process_type = "process-eval-holoubek";
     $scoresheet_version = "Varianta hodnocení stylu";
 }
+
+if ($judging_scoresheet == 38) {
+    $output_form = "cech_output.eval.php";
+    $scoresheet_form = "cech_scoresheet.eval.php";
+    $process_type = "process-eval-cech";
+    $scoresheet_version = "Varianta Cech Domovarniku";
+}
 /** 
  * When a user is adding a new evaluation.
  * If there's an entry_number $_POST var, indicates

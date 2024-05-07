@@ -127,6 +127,12 @@ if ($_SESSION['prefsEval'] == 1) {
             </label>
         </div>
 
+        <div class="radio">
+            <label>
+                <input type="radio" name="jPrefsScoresheet" value="38" id="jPrefsScoresheet_1" rel="" <?php if ($judging_scoresheet == "38") echo "CHECKED"; ?>/> Varianta Cech 2024
+            </label>
+        </div>
+
         <span id="helpBlock" class="help-block">
         <div class="btn-group" role="group" aria-label="queuedModal">
             <div class="btn-group" role="group">
