@@ -53,7 +53,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             @page {
 
                 /*size: a4 portrait;*/
-                size: 75mm 38mm;
+                size: 35mm 25mm;
 
             }
 
@@ -76,8 +76,8 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
         .label {
             padding: 2mm;
-            width: 75mm;
-            height: 38mm;
+            width: 35mm;
+            height: 25mm;
             /*width: 85mm;*/
             /*height: 50mm;*/
             break-inside: avoid;
@@ -95,40 +95,40 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             break-after: auto;
         }
 
-        .label-title {
-            font-size: 5mm;
-            flex: 100% 1 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        /*.label-title {*/
+        /*    font-size: 5mm;*/
+        /*    flex: 100% 1 1;*/
+        /*    overflow: hidden;*/
+        /*    text-overflow: ellipsis;*/
+        /*}*/
 
         .label-number {
-            font-size: 15mm;
+            font-size: 9mm;
             flex: auto 1 1;
-            height: 25mm;
+            height: 20mm;
             display: flex;
             justify-content: center;
             flex-direction: column;
         }
 
-        .label-qr {
-            width: 25mm;
-            height: 25mm;
-            flex: auto 0 0;
-        }
+        /*.label-qr {*/
+        /*    width: 25mm;*/
+        /*    height: 25mm;*/
+        /*    flex: auto 0 0;*/
+        /*}*/
 
-        .goldenDiplom {
-            background-color: gold;
-        }
+        /*.goldenDiplom {*/
+        /*    background-color: gold;*/
+        /*}*/
 
-        .silverDiplom {
-            background-color: silver;
+        /*.silverDiplom {*/
+        /*    background-color: silver;*/
 
-        }
+        /*}*/
 
-        .bronzeDiplom {
-            background-color: saddlebrown;
-        }
+        /*.bronzeDiplom {*/
+        /*    background-color: saddlebrown;*/
+        /*}*/
     </style>
 </head>
 <body>
@@ -192,19 +192,19 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     <div class="label">
         <?php
 
-        echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $id_prefix . '-', $row_sql['brewId'] . '</div>';
+//        echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
+        echo '<div class="label-number">' . $id_prefix . '-9', $row_sql['brewId'] . '</div>';
 
-        require_once(CLASSES . 'qr_code/qrClass.php');
-        $qr = new qRClas();
-
-        $qrcode_url = $base_url . "index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['brewId'];
-        $qrcode_url = urlencode($qrcode_url);
-
-        $qr->qRCreate($qrcode_url, "100x100", "UTF-8");
-        $qrcode_link = $qr->url;
-
-        echo "<img class=\"label-qr\" src=\"$qrcode_link\">";
+//        require_once(CLASSES . 'qr_code/qrClass.php');
+//        $qr = new qRClas();
+//
+//        $qrcode_url = $base_url . "index.php?section=evaluation&go=scoresheet&action=add&id=" . $row_sql['brewId'];
+//        $qrcode_url = urlencode($qrcode_url);
+//
+//        $qr->qRCreate($qrcode_url, "100x100", "UTF-8");
+//        $qrcode_link = $qr->url;
+//
+//        echo "<img class=\"label-qr\" src=\"$qrcode_link\">";
         echo "</div>\n";
         }
         ?>
