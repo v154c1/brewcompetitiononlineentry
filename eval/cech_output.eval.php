@@ -26,7 +26,7 @@ if ($score == 0 && $row_eval['evalFinalScore'] == 13) {
     <!-- Appearance -->
     <h5 class="header-h5 header-bdr-bottom"><?php echo $label_appearance; ?><span class="pull-right"><span
                     class="judge-score"><?php echo $row_eval['evalAppearanceScore']; ?></span>/<?php echo $appearance_possible; ?></span>
-    </h5><h6>barva, pěna, čirost, držení, struktura, jiné</h6>
+    </h5><h6>barva, pěna, čirost, trvanlivost, struktura, jiné</h6>
 
 
     <!-- Aroma -->
