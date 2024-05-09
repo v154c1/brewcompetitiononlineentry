@@ -1,8 +1,8 @@
 <?php
 
 
-$aroma_points = 12;
 $appearance_points = 3;
+$aroma_points = 12;
 $flavor_points = 20;
 $mouthfeel_points = 5;
 $overall_points = 10;
@@ -16,7 +16,7 @@ $overall_points = 10;
     }
 
     .score-button {
-        flex: 7% 1 0;
+        flex: 4.8% 1 0;
         padding: 6px 6px;
     }
 
@@ -90,12 +90,13 @@ $overall_points = 10;
 
 <?php
 
-function score_input($points, $input_name, $label, $initial_value, $notes)
+function score_input($points, $input_name, $label, $initial_value, $notes, $hints)
 {
 
     ?>
     <h3 class="section-heading"><?php echo $label; ?></h3>
     <h4><?php echo $notes; ?></h4>
+    <h5><?php echo $hints; ?></h5>
     <div class="form-group">
         <div class="row">
 
@@ -129,18 +130,20 @@ function score_input($points, $input_name, $label, $initial_value, $notes)
 
 
 <?php
-score_input($aroma_points, "evalAromaScore", $label_aroma, $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné");
 
-score_input($appearance_points, "evalAppearanceScore", $label_appearance, $row_eval['evalAppearanceScore'], "barva, pěna, čirost, držení, struktura, jiné");
+score_input($appearance_points, "evalAppearanceScore", "Vzhled", $row_eval['evalAppearanceScore'], "barva, pěna, čirost, trvanlivost, struktura, jiné", "0 = nepěkné, 3 = velice hezké");
 
-score_input($flavor_points, "evalFlavorScore", $label_flavor, $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné");
-
-score_input($mouthfeel_points, "evalMouthfeelScore", $label_mouthfeel, $row_eval['evalMouthfeelScore'], "tělo, sycení, hřejivost, sametovost, svíravost, jiné");
-
-score_input($overall_points, "evalOverallScore", $label_overall_impression, $row_eval['evalOverallScore'], "daný styl, vady, požitek");
+score_input($aroma_points, "evalAromaScore", "Aroma / vůně", $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné", "0 = puch, 12 = čistá, příjemná, ve style");
 
 
-print_r($row_eval);
+
+score_input($flavor_points, "evalFlavorScore", "Chuť", $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné", "0 = odporné, 20 = vynikající");
+
+score_input($mouthfeel_points, "evalMouthfeelScore", "Pocit po napití", $row_eval['evalMouthfeelScore'], "tělo, sycení, hřejivost, sametovost, svíravost, jiné", "0 = nepitelné, 5 = příjemné bez vad");
+
+score_input($overall_points, "evalOverallScore", "Celkový charakter", $row_eval['evalOverallScore'], "daný styl, vady, požitek", "0 = nepitelné, 10 = báječné, ve stylu");
+
+
 ?>
 
 <div class="form-group">
