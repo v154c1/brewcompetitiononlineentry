@@ -64,7 +64,7 @@ if ($setup_success) {
 	if (SINGLE) require_once(SSO.'sso.inc.php');
 	require_once (LIB.'common.lib.php');
 	require_once (INCLUDES.'db_tables.inc.php');
-	if ($force_update) include (UPDATE.'off_schedule_update.php');
+	if ($force_update) include (UPDATE.'run_update.php');
 	require_once (LIB.'help.lib.php');
 	require_once (INCLUDES.'styles.inc.php'); // Establishing session vars depends upon arrays here
 	require_once (DB.'common.db.php');
@@ -328,7 +328,7 @@ if ($setup_success) {
 
 		}
 
-		if ($row_contest_info_check['id'] != "1") {
+		if (($row_contest_info_check) && ($row_contest_info_check['id'] != "1")) {
 
 			$update_table = $prefix."contest_info";
 			$data = array('id' => 1);

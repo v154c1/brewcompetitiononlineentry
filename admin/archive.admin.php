@@ -1,13 +1,4 @@
 <?php
-
-// Redirect if directly accessed without authenticated session
-if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] > 0))) {
-    $redirect = "../../403.php";
-    $redirect_go_to = sprintf("Location: %s", $redirect);
-    header($redirect_go_to);
-    exit();
-}
-
 require (DB.'archive.db.php');
 require (DB.'styles.db.php');
 
@@ -190,7 +181,7 @@ foreach ($style_sets as $style_set) {
                 <input type="radio" name="archiveWinnerMethod" value="<?php echo $key; ?>" id="archiveWinnerMethod_<?php echo $key; ?>" <?php if ($row_archive['archiveWinnerMethod'] == $key) echo "CHECKED"; if (!$results_data) echo " DISABLED"; ?>> <?php echo $value; ?>
             </label>
             <?php } ?>
-            <span id="helpBlock" class="help-block"><?php if (!$results_data) echo $archive_text_022; else { echo $archive_text_020; ?> <a href="<?php echo build_public_url("past-winners",$row_archive['archiveSuffix'],"default","default",$sef,$base_url); ?>" target="_blank"><?php echo $label_view; ?> <i class="fa fa-external-link"></i></a>.<?php } ?></span>
+            <span id="helpBlock" class="help-block"><?php if (!$results_data) echo $archive_text_022; else { echo $archive_text_020; ?> <a href="<?php echo build_public_url("past-winners",$row_archive['archiveSuffix'],"default","default",$sef,$base_url,"default"); ?>" target="_blank"><?php echo $label_view; ?> <i class="fa fa-external-link"></i></a>.<?php } ?></span>
         </div>
     </div>
 </div><!-- ./Form Group -->
@@ -287,7 +278,7 @@ foreach ($style_sets as $style_set) {
     <th width="12%"><?php echo $table_header4; ?></th>
     <th width="12%"><?php echo $table_header5; ?></th>
     <th width="12%"><?php echo $table_header6; ?></th>
-    <th width="12%" class="hidden-xs hidden-sm"><?php echo $label_admin_winner_display; ?> <a tabindex="0" type="button" role="button" data-toggle="popover" data-html="true" data-trigger="hover" data-placement="auto top" data-container="body" data-content="<?php echo $archive_text_019; if ($_SESSION['prefsProEdition'] == 0) { ?> Select the <span class='fa fa-lg fa-file-excel'></span> icon to download a CSV of winner data.<?php } ?>"><span class="fa fa-lg fa-question-circle"></span></th>
+    <th width="12%" class="hidden-xs hidden-sm"><?php echo $label_admin_winner_display; ?> <a class="hide-loader" tabindex="0" type="button" role="button" data-toggle="popover" data-html="true" data-trigger="hover" data-placement="auto top" data-container="body" data-content="<?php echo $archive_text_019; if ($_SESSION['prefsProEdition'] == 0) { ?> Select the <span class='fa fa-lg fa-file-excel'></span> icon to download a CSV of winner data.<?php } ?>"><span class="fa fa-lg fa-question-circle"></span></th>
     <th><?php echo $table_header7; ?></th>
 </thead>
 <tbody>

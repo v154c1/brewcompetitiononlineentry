@@ -39,6 +39,7 @@ if ((isset($_SERVER['HTTP_REFERER'])) && (((isset($_SESSION['loginUsername'])) &
 	$prefsUSCLEx = "";
 	$prefsBestBrewerTitle = "";
 	$prefsBestClubTitle = "";
+	$prefsUserEntryLimitDates = "";
 
 	if ((isset($_POST['prefsGoogleAccount0'])) && (isset($_POST['prefsGoogleAccount1']))) $prefsGoogleAccount = $_POST['prefsGoogleAccount0']."|".$_POST['prefsGoogleAccount1'];
 
@@ -63,7 +64,7 @@ if ((isset($_SERVER['HTTP_REFERER'])) && (((isset($_SESSION['loginUsername'])) &
 		$prefsBestClubTitle = sterilize($prefsBestClubTitle);
 	}
 
-	if ($_POST['prefsStyleSet'] != $_SESSION['prefsStyleSet']) $style_set_change = TRUE;
+	if (($section != "setup") && ($_POST['prefsStyleSet'] != $_SESSION['prefsStyleSet'])) $style_set_change = TRUE;
 		
 	$update_table = $prefix."preferences";
 
@@ -76,6 +77,47 @@ if ((isset($_SERVER['HTTP_REFERER'])) && (((isset($_SESSION['loginUsername'])) &
 	$prefsScoringCOA = sterilize($_POST['prefsScoringCOA']);
 
 	if ($prefsScoringCOA == 1) $prefsBestUseBOS = 0;
+
+	$incremental_limits = array();
+
+	if ((!empty($_POST['user-entry-limit-number-1'])) && (!empty($_POST['user-entry-limit-expire-days-1']))) {
+
+		$incremental_limits[1] = array(
+			'limit-number' => sterilize($_POST['user-entry-limit-number-1']),
+			'limit-days' => sterilize($_POST['user-entry-limit-expire-days-1'])
+		);
+
+		if (!empty($_POST['user-entry-limit-number-2'])) {
+			$incremental_limits[2] = array(
+				'limit-number' => sterilize($_POST['user-entry-limit-number-2']),
+				'limit-days' => sterilize($_POST['user-entry-limit-expire-days-2'])
+			);
+		}
+
+		if (!empty($_POST['user-entry-limit-number-3'])) {
+			$incremental_limits[3] = array(
+				'limit-number' => sterilize($_POST['user-entry-limit-number-3']),
+				'limit-days' => sterilize($_POST['user-entry-limit-expire-days-3'])
+			);
+		}
+
+		if (!empty($_POST['user-entry-limit-number-4'])) {
+			$incremental_limits[4] = array(
+				'limit-number' => sterilize($_POST['user-entry-limit-number-4']),
+				'limit-days' => sterilize($_POST['user-entry-limit-expire-days-4'])
+			);
+		}
+
+		/*
+		$incremental_limits[sterilize($_POST['user-entry-limit-number-1'])] = sterilize($_POST['user-entry-limit-expire-days-1']);
+		if (!empty($_POST['user-entry-limit-number-2'])) $incremental_limits[sterilize($_POST['user-entry-limit-number-2'])] = sterilize($_POST['user-entry-limit-expire-days-2']);
+		if (!empty($_POST['user-entry-limit-number-3'])) $incremental_limits[sterilize($_POST['user-entry-limit-number-3'])] = sterilize($_POST['user-entry-limit-expire-days-3']);
+		if (!empty($_POST['user-entry-limit-number-4'])) $incremental_limits[sterilize($_POST['user-entry-limit-number-4'])] = sterilize($_POST['user-entry-limit-expire-days-4']);
+		*/
+
+	}
+
+	if (!empty($incremental_limits)) $prefsUserEntryLimitDates = json_encode($incremental_limits);
 
 	$data = array(
 		'prefsTemp' => sterilize($_POST['prefsTemp']),
@@ -147,7 +189,8 @@ if ((isset($_SERVER['HTTP_REFERER'])) && (((isset($_SESSION['loginUsername'])) &
 		'prefsShipping' => sterilize($_POST['prefsShipping']),
 		'prefsBestUseBOS' => $prefsBestUseBOS,
 		'prefsEval' => sterilize($_POST['prefsEval']),
-		'prefsScoringCOA' => $prefsScoringCOA
+		'prefsScoringCOA' => $prefsScoringCOA,
+		'prefsUserEntryLimitDates' => blank_to_null($prefsUserEntryLimitDates)
 	);
 
 	// Check if style type entry limits were specified
@@ -358,93 +401,6 @@ if ((isset($_SERVER['HTTP_REFERER'])) && (((isset($_SESSION['loginUsername'])) &
 			}
 
 		}
-
-		// Update style set of any custom styles to chosen style set
-		// Safeguards against a bug introduced in 2.1.13 scripting
-		// Also update sub-style idenfication scheming
-
-		foreach ($style_sets as $key) {
-            
-            if ($key['style_set_name'] == $prefsStyleSet) {
-            	
-            	if ($prefsStyleSet == "BA") {
-            		
-            		$query_style_name = sprintf("SELECT id,brewStyleNum,brewStyle FROM %s WHERE brewStyleOwn='custom' ORDER BY id", $prefix."styles");
-					$style_name = mysqli_query($connection,$query_style_name) or die (mysqli_error($connection));
-					$row_style_name = mysqli_fetch_assoc($style_name);
-
-					$query_style_num = sprintf("SELECT brewStyleNum FROM %s WHERE brewStyleVersion='BA' ORDER BY brewStyleNum DESC LIMIT 1", $prefix."styles");
-					$style_num = mysqli_query($connection,$query_style_num) or die (mysqli_error($connection));
-					$row_style_num = mysqli_fetch_assoc($style_num);
-
-					$sub_style_id = $row_style_num['brewStyleNum'] + 1;
-
-					do {
-
-						$sub_style = str_pad($sub_style_id,3,"0", STR_PAD_LEFT);
-						
-						$update_table = $prefix."styles";
-						$data = array(
-							'brewStyleVersion' => $prefsStyleSet,
-							'brewStyleNum' => $sub_style
-						);
-						$db_conn->where ('id', $row_style_name['id']);
-						$result = $db_conn->update ($update_table, $data);
-						if (!$result) {
-							$error_output[] = $db_conn->getLastError();
-							$errors = TRUE;
-						}
-
-						$update_table = $prefix."brewing";
-						$data = array(
-							'brewSubCategory' => $sub_style
-						);
-						$db_conn->where ('brewStyle', $row_style_name['brewStyle']);
-						$result = $db_conn->update ($update_table, $data);
-						if (!$result) {
-							$error_output[] = $db_conn->getLastError();
-							$errors = TRUE;
-						}
-
-						$sub_style_id++;
-
-					} while ($row_style_name = mysqli_fetch_assoc($style_name));
-
-            	}
-            	
-            	else {
-	            	
-	            	if ($key['style_set_sub_style_method'] == 0) $sub_style_id = "A";
-	            	else $sub_style_id = "001";
-
-	            	$update_table = $prefix."styles";
-	            	$data = array(
-	            		'brewStyleVersion' => $prefsStyleSet,
-	            		'brewStyleNum' => $sub_style_id
-	            	);
-	            	$db_conn->where ('brewStyleOwn', 'custom');
-	            	$result = $db_conn->update ($update_table, $data);
-	            	if (!$result) {
-	            		$error_output[] = $db_conn->getLastError();
-	            		$errors = TRUE;
-	            	}
-
-	            	$update_table = $prefix."brewing";
-	            	$data = array(
-	            		'brewSubCategory' => $sub_style_id
-	            	);
-	            	$db_conn->where ('brewCategory', 50, ">=");
-	            	$result = $db_conn->update ($update_table, $data);
-	            	if (!$result) {
-	            		$error_output[] = $db_conn->getLastError();
-	            		$errors = TRUE;
-	            	}
-
-	            } // end else
-
-            } // end if ($key['style_set_name'] == $prefsStyleSet)
-
-        } // end foreach
 			
 		if ($_POST['prefsPaypalIPN'] == 1) {
 

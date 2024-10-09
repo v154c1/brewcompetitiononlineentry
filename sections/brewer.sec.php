@@ -6,6 +6,7 @@
  *
  */
 
+/*
 // Redirect if directly accessed without authenticated session
 if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername'])) && (!isset($base_url)))) {
     $redirect = "../../403.php";
@@ -13,6 +14,7 @@ if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername']))
     header($redirect_go_to);
     exit();
 }
+*/
 
 if ($section != "step2") {
     include_once (DB.'judging_locations.db.php');
@@ -281,7 +283,7 @@ if (($_SESSION['prefsProEdition'] == 1) && ((!$show_judge_steward_fields) || ($g
 
 // Build drop-off select element
 $dropoff_select = "";
-if ($section != "step2") {
+if (($section != "step2") && ($row_brewer) && ($row_dropoff)) {
     do {
         if (($action == "edit") && ($row_brewer['brewerDropOff'] == $row_dropoff['id'])) $selected = "SELECTED";
         else $selected = "";

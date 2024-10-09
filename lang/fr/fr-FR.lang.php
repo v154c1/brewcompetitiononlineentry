@@ -2063,7 +2063,7 @@ $brew_text_042 = "Veuillez fournir le taux d'alcool par volume jusqu'au centièm
 $brew_text_043 = "Nombres uniquement - décimales acceptables jusqu'au centième (par exemple, 5,2, 12,84, etc.).";
 $brew_text_044 = "Veuillez fournir la gravité spécifique finale jusqu'au millième (par exemple, 0,991, 1,000, 1,007, etc.).";
 $brew_text_045 = "Veuillez indiquer la ou les sources de jus - sélectionnez tout ce qui s'applique.";
-$brew_text_046 = "Veuillez spécifier l'abréviation à deux lettres de l'état/province de toute autre(s) source(s) de jus (par exemple, VT, ME, CA, ON, etc.). Séparez chaque abréviation de lieu par une virgule (,) ou un point-virgule (;). Certains symboles ne sont pas autorisés, y compris les guillemets doubles (&quot;) et le pourcentage (&#37;).";
+$brew_text_046 = "Veuillez spécifier l'abréviation à deux lettres de l'état/province de toute autre(s) source(s) de jus (par exemple, VT, ME, CA, ON, etc.).";
 $brew_text_047 = "Comment votre entrée doit-elle être versée pour les juges ?";
 $brew_text_048 = "Une levure doit-elle être réveillée avant le versement ?";
 $brew_text_049 = "Fournissez des informations supplémentaires sur la manière dont votre entrée doit être versée ou d'autres éléments connexes (par exemple, des éruptions possibles, etc.).";
@@ -2092,6 +2092,38 @@ $form_required_fields_02 = "Ce champ est requis.";
 $entry_info_text_054 = "Entrées par type de style et limites associées:";
 
 $maintenance_text_002 = "Seuls les administrateurs de haut niveau peuvent se connecter lorsque le site est en mode maintenance.";
+
+$brew_text_054 = "D'où vient le fruit ou le jus de pomme/poire ? Veuillez sélectionner toutes les options qui s'appliquent à la boisson de base.";
+$label_packaging = "Emballage";
+$label_bottle = "Bouteille";
+$label_other_size = "Autre Taille";
+$label_can = "Canette";
+$label_fruit_add_source = "Source(s) d'ajout de Fruits";
+
+$label_yearly_volume = "Volume Annuel";
+$label_gallons = "Gallons";
+$label_barrels = "Fûts";
+$label_hectoliters = "Hectolitres";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.1 Additions
+ * ------------------------------------------------------------------------
+ */
+$sidebar_text_027 = "en vigueur jusqu'à";
+$entry_info_text_055 = "Aucun mode de paiement n'est spécifié dans le système pour le moment. Vérifiez les règles du concours ou contactez l'organisateur.";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.2 Additions
+ * ------------------------------------------------------------------------
+ */
+$brew_text_055 = "Retournez ici pour ajouter une autre entrée ?";
+$brewer_info_015 = "<p>Il semble que vous vous soyez inscrit pour servir comme juge ou assistant, mais vous n'avez pas indiqué que vous êtes disponible pour une quelconque session de jugement dans l'un ou l'autre des rôles.</p><p>Veuillez sélectionner le bouton ci-dessous pour modifier votre compte, puis sélectionner \"Oui\" pour chacune des sessions auxquelles vous êtes disponible en tant que juge dans la section Disponibilité des Sessions de Jugement et celles où vous êtes disponible comme assistant dans la section Disponibilité des Sessions d'Assistance.</p><p>Si vous n'êtes pas disponible pour une session dans l'un ou l'autre des rôles, veuillez sélectionner \"Non\" dans les sections Jugement et/ou Assistance.</p>";
+$brewer_info_016 = "<p>Il semble que vous vous soyez inscrit pour servir comme juge, mais vous n'avez pas indiqué que vous êtes disponible pour une quelconque session de jugement.</p><p>Veuillez sélectionner le bouton ci-dessous pour modifier votre compte, puis sélectionner \"Oui\" pour chacune des sessions auxquelles vous êtes disponible comme juge dans la section Disponibilité des Sessions de Jugement.</p><p>Si vous n'êtes disponible pour aucune session, veuillez sélectionner \"Non\" dans la section Jugement.</p>";
+$brewer_info_017 = "<p>Il semble que vous vous soyez inscrit pour servir comme assistant, mais vous n'avez pas indiqué que vous êtes disponible pour une quelconque session de jugement.</p><p>Veuillez sélectionner le bouton ci-dessous pour modifier votre compte, puis sélectionner \"Oui\" pour chacune des sessions auxquelles vous êtes disponible comme assistant dans la section Disponibilité des Sessions d'Assistance.</p><p>Si vous n'êtes disponible pour aucune session, veuillez sélectionner \"Non\" dans la section Jugement.</p>";
+$brewer_info_018 = "<strong>Vous avez indiqué que vous êtes prêt à servir comme juge, mais vous n'avez pas indiqué que vous êtes disponible pour une session de jugement répertoriée.</strong> Veuillez modifier les informations de votre compte et sélectionner \"Oui\" pour une ou plusieurs sessions de jugement.";
+$brewer_info_019 = "<strong>Vous avez indiqué que vous êtes prêt à servir comme assistant, mais vous n'avez pas indiqué que vous êtes disponible pour une session d'assistance répertoriée.</strong> Veuillez modifier les informations de votre compte et sélectionner \"Oui\" pour une ou plusieurs sessions d'assistance.";
 
 
 /**

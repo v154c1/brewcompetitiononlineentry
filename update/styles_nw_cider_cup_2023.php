@@ -1,12 +1,4 @@
 <?php 
-
-if (!function_exists('insertMulti')) {
-    $redirect = "../../403.php";
-    $redirect_go_to = sprintf("Location: %s", $redirect);
-    header($redirect_go_to);
-    exit();
-}
-
 $data = array(
   array('brewStyleGroup' => 'C1','brewStyleNum' => 'A','brewStyle' => 'Low-Tannin Ciders Dry','brewStyleCategory' => 'Cider','brewStyleVersion' => 'NWCiderCup','brewStyleOG' => NULL,'brewStyleOGMax' => NULL,'brewStyleFG' => NULL,'brewStyleFGMax' => NULL,'brewStyleABV' => NULL,'brewStyleABVMax' => NULL,'brewStyleIBU' => NULL,'brewStyleIBUMax' => NULL,'brewStyleSRM' => NULL,'brewStyleSRMMax' => NULL,'brewStyleType' => '2','brewStyleInfo' => 'Cider made from fermenting apples. Exhibits characteristics of ciders commonly made from low tannin apples (formerly listed as dessert or culinary). Low tannin ciders may be higher in acidity. High tannin characters, such as heavy astringency or associated mouthfeel should not be notably present. FG &#60; 1.007 (&#60; 1.8 Brix).','brewStyleLink' => NULL,'brewStyleActive' => 'Y','brewStyleOwn' => 'bcoe','brewStyleReqSpec' => '1','brewStyleStrength' => NULL,'brewStyleCarb' => '1','brewStyleSweet' => '1','brewStyleTags' => NULL,'brewStyleComEx' => NULL,'brewStyleEntry' => '<p>Entrants <strong><u>MUST</u></strong> specify ABV.</p>'),
   array('brewStyleGroup' => 'C1','brewStyleNum' => 'B','brewStyle' => 'Low-Tannin Ciders Sweet','brewStyleCategory' => 'Cider','brewStyleVersion' => 'NWCiderCup','brewStyleOG' => NULL,'brewStyleOGMax' => NULL,'brewStyleFG' => NULL,'brewStyleFGMax' => NULL,'brewStyleABV' => NULL,'brewStyleABVMax' => NULL,'brewStyleIBU' => NULL,'brewStyleIBUMax' => NULL,'brewStyleSRM' => NULL,'brewStyleSRMMax' => NULL,'brewStyleType' => '2','brewStyleInfo' => 'Cider made from fermenting apples. Exhibits characteristics of ciders commonly made from low tannin apples (formerly listed as dessert or culinary). Low tannin ciders may be higher in acidity. High tannin characters, such as heavy astringency or associated mouthfeel should not be notably present. FG &#62; 1.007 (&#62; 1.8 Brix).','brewStyleLink' => NULL,'brewStyleActive' => 'Y','brewStyleOwn' => 'bcoe','brewStyleReqSpec' => '1','brewStyleStrength' => NULL,'brewStyleCarb' => '1','brewStyleSweet' => '1','brewStyleTags' => NULL,'brewStyleComEx' => NULL,'brewStyleEntry' => '<p>Entrants <strong><u>MUST</u></strong>  specify ABV.</p>'),
@@ -31,9 +23,9 @@ $data = array(
 
 $update_table = $prefix."styles";
 $result = $db_conn->insertMulti($update_table, $data);
-if ($result) $output_off_sched_update .= "<li>Added NW Cider Cup styles to Styles table.</li>"; 
+if ($result) $output_run_update .= "<li>Added NW Cider Cup styles to Styles table.</li>"; 
 else {
-  $output_off_sched_update .= "<li>Addition of NW Cider Cup styles to the Styles table failed. <strong class=\"text-danger\">Error: ".$db_conn->getLastError()."</strong></li>";
+  $output_run_update .= "<li>Addition of NW Cider Cup styles to the Styles table failed. <strong class=\"text-danger\">Error: ".$db_conn->getLastError()."</strong></li>";
   $error_count += 1;
 }
 

@@ -182,7 +182,7 @@ if (($action == "default") && ($filter == "default")) {
 
         $loc_total = 0;
 
-        if ($row_judging['judgingLocType'] < 2) {
+        if (($row_judging) && ($row_judging['judgingLocType'] < 2)) {
             if ($row_judging) $loc_total = get_table_info(1,"count_total","default","default",$row_judging['id']);
             $all_loc_total[] = $loc_total;
 
@@ -206,14 +206,20 @@ if (($action == "default") && ($filter == "default")) {
             $a = array(get_table_info("1","list",$row_tables['id'],$dbTable,"default"));
             $styles = display_array_content($a,1);
             $received = get_table_info("1","count_total",$row_tables['id'],$dbTable,"default");
-            if ($_SESSION['jPrefsTablePlanning'] == 0) {
-                $scored =  get_table_info("1","score_total",$row_tables['id'],$dbTable,"default");
-                //get_table_info($input,$method,$id,$dbTable,$param)
-                if (($received > $scored) && ($dbTable == "default") && ($_SESSION['userAdminObfuscate'] == 0)) $scored = $scored." <a class=\"hidden-print\" href=\"".$base_url."index.php?section=admin&amp;go=judging_scores&amp;action=edit&amp;id=".$row_tables['id']."\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Not all scores have been entered for this table. Select to add/edit scores.\"><span class=\"fa fa-lg fa-exclamation-circle text-danger\"></span></a>";
-                else $scored = $scored;
-            }
+            $scored =  get_table_info("1","score_total",$row_tables['id'],$dbTable,"default");
+            
+            if ($dbTable == "default") {
 
-            else $scored = "<i class=\"text-danger fa fas fa-lg fa-ban\"></i> <small><em>Planning Mode</em></small>";
+                if ($_SESSION['jPrefsTablePlanning'] == 0) {
+                    
+                    if (($received > $scored) && ($dbTable == "default") && ($_SESSION['userAdminObfuscate'] == 0)) $scored = $scored." <a class=\"hidden-print\" href=\"".$base_url."index.php?section=admin&amp;go=judging_scores&amp;action=edit&amp;id=".$row_tables['id']."\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Not all scores have been entered for this table. Select to add/edit scores.\"><span class=\"fa fa-lg fa-exclamation-circle text-danger\"></span></a>";
+                    else $scored = $scored;
+                }
+
+                else $scored = "<i class=\"text-danger fa fas fa-lg fa-ban\"></i> <small><em>Planning Mode</em></small>";
+
+            }
+                
 
             $assigned_judges = assigned_judges($row_tables['id'],$dbTable,$judging_assignments_db_table);
                 if ($dbTable == "default") $assigned_judges .= "<button class=\"btn-link\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Delete all judge assignments for this table.\" onclick=\"purge_data('".$base_url."','purge','judge-assignments','table-admin','delete-judges-".$row_tables['id']."');\"><i class=\"text-danger fas fa-lg fa-minus-circle\"></i></button><div><span class=\"hidden\" id=\"delete-judges-".$row_tables['id']."-status\"></span><span class=\"hidden\" id=\"delete-judges-".$row_tables['id']."-status-msg\"></span></div>";
@@ -448,12 +454,16 @@ if (($action == "add") || ($action == "edit")) {
                 $table_styles_available .= "<td><input id=\"".$row_styles['id']."\" type=\"checkbox\" name=\"tableStyles[]\" onClick=\"update_table_total('".$row_styles['id']."');\" value=\"".$row_styles['id']."\" ".$disabled_selected_styles."></td>\n";
 
                 if ($_SESSION['prefsStyleSet'] == "BA") {
-                    $ba_category = style_convert($row_styles['brewStyleGroup'],1,$base_url);
+                    if ($row_styles['brewStyleOwn'] == "custom") $ba_category = $row_styles['brewStyleGroup']." (Custom)";
+                    else $ba_category = style_convert($row_styles['brewStyleGroup'],1,$base_url);
                     $table_styles_available .= "<td>".$ba_category."</td><td>".$row_styles['brewStyle'].$style_no_entries.$style_assigned_location."</td>\n";
                 }
                 else {
                     $table_styles_available .= "<td><span class=\"hidden\">".$style_sort."</span>".$style_display."</td>\n";
-                    $table_styles_available .= "<td>".style_convert($row_styles['brewStyleGroup'],1,$base_url)."</td>\n";
+                    $table_styles_available .= "<td>";
+                    if ($row_styles['brewStyleOwn'] == "custom")  $table_styles_available .= $row_styles['brewStyleGroup']." (Custom)";
+                    else $table_styles_available .= style_convert($row_styles['brewStyleGroup'],1,$base_url);
+                    $table_styles_available .= "</td>\n";
                     $table_styles_available .= "<td>".$row_styles['brewStyle'].$style_no_entries.$style_assigned_location."</td>\n";
                 }
                 $table_styles_available .= "<td><span id=\"".$row_styles['id']."-total\">".$received_entry_count_style."</span></td>\n";

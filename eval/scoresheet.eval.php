@@ -1,13 +1,5 @@
 <?php
 
-// Redirect if directly accessed without authenticated session
-if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername'])) && (!isset($base_url)))) {
-    $redirect = "../../403.php";
-    $redirect_go_to = sprintf("Location: %s", $redirect);
-    header($redirect_go_to);
-    exit();
-}
-
 $eid = "";
 $uid = "";
 $style = "";
@@ -444,31 +436,6 @@ if ($entry_found) {
     $entry_info_html .= "</div>";
   }
 
-  if (($_SESSION['prefsStyleSet'] == "NWCiderCup") && (!empty($row_entry_info['brewJuiceSource']))) {
-    
-    $juice_src_arr = json_decode($row_entry_info['brewJuiceSource'],true);
-    $juice_src_disp = "";
-
-    if (is_array($juice_src_arr['juice_src'])) {
-      $juice_src_disp .= implode(", ",$juice_src_arr['juice_src']);
-      $juice_src_disp .= ", ";
-    }
-
-    if ((isset($juice_src_arr['juice_src_other'])) && (is_array($juice_src_arr['juice_src_other']))) {
-      $juice_src_disp .= implode(", ",$juice_src_arr['juice_src_other']);
-      $juice_src_disp .= ", ";
-    }
-
-    $juice_src_disp = rtrim($juice_src_disp,",");
-    $juice_src_disp = rtrim($juice_src_disp,", ");
-
-    $entry_info_html .= "<div class=\"row bcoem-admin-element\">";
-    $entry_info_html .= "<div class=\"col col-lg-3 col-md-4 col-sm-4 col-xs-12\"><strong>".$label_juice_source."</strong></div>";
-    $entry_info_html .= "<div class=\"col col-lg-9 col-md-8 col-sm-8 col-xs-12\">".$juice_src_disp."</div>";
-    $entry_info_html .= "</div>";
-  
-  }
-
   if (!empty($row_entry_info['brewPossAllergens'])) {
     $entry_info_html .= "<div class=\"row bcoem-admin-element\">";
     $entry_info_html .= "<div class=\"col col-lg-3 col-md-4 col-sm-4 col-xs-12\"><strong>".$label_possible_allergens."</strong></div>";
@@ -476,7 +443,7 @@ if ($entry_found) {
     $entry_info_html .= "</div>";
   }
 
-  if (!empty($row_entry_info['brewPouring'])) {
+  if ((!empty($row_entry_info['brewPouring'])) && ((!empty($row_entry_info['brewStyleType'])) && ($row_entry_info['brewStyleType'] == 1))) {
     
     $pouring_arr = json_decode($row_entry_info['brewPouring'],true);
 
@@ -628,7 +595,7 @@ else {
 // Sub-nav Buttons
 if ($eval_source == 0) $eval_nav_buttons .= "<div style=\"margin: 0 5px 15px 0;\" class=\"btn-group hidden-print\" role=\"group\"><a class=\"btn btn-block btn-default\" href=\"".$base_url."index.php?section=evaluation&amp;go=default&amp;filter=default&amp;view=admin\"><span class=\"fa fa-chevron-circle-left\"></span> ".$label_admin.": ".$label_evaluations."</a></div>";
 $eval_nav_buttons .= "<div style=\"margin-bottom: 15px;\" class=\"btn-group hidden-print\" role=\"group\"><button class=\"btn btn-block btn-default\"  data-toggle=\"modal\" data-target=\"#unsaved-modal\"><span class=\"fa fa-chevron-circle-left\"></span> ".$label_judging_dashboard."</button></div>";
-//$eval_nav_buttons .= "<div style=\"margin-bottom: 15px;\" class=\"btn-group hidden-print\" role=\"group\"><a class=\"btn btn-block btn-default\" href=\"".build_public_url("evaluation","default","default","default",$sef,$base_url)."\"><span class=\"fa fa-chevron-circle-left\"></span> ".$label_judging_dashboard."</a></div>";
+//$eval_nav_buttons .= "<div style=\"margin-bottom: 15px;\" class=\"btn-group hidden-print\" role=\"group\"><a class=\"btn btn-block btn-default\" href=\"".build_public_url("evaluation","default","default","default",$sef,$base_url,"default")."\"><span class=\"fa fa-chevron-circle-left\"></span> ".$label_judging_dashboard."</a></div>";
 if ($eval_prevent_edit) $header_elements .= sprintf("<p>%s</p>",$header_text_104);
 ?>
 <!-- Unsaved Data Modal -->
@@ -644,7 +611,7 @@ if ($eval_prevent_edit) $header_elements .= sprintf("<p>%s</p>",$header_text_104
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" data-dismiss="modal"><?php echo $label_close; ?></button>
-        <a class="btn btn-primary" href="<?php echo build_public_url("evaluation","default","default","default",$sef,$base_url); ?>"><?php echo $label_judging_dashboard; ?></a>
+        <a class="btn btn-primary" href="<?php echo build_public_url("evaluation","default","default","default",$sef,$base_url,"default"); ?>"><?php echo $label_judging_dashboard; ?></a>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -677,16 +644,25 @@ var score_range_ok = "<?php echo $label_score_range_ok; ?>";
 var score_range_ok_text = "<?php echo $evaluation_info_047; ?>";
 var score_range_ok_output = "<span class=\"text-success\"><strong>" + score_range_ok + "</strong><br><small><strong>" + score_range_ok_text + "</strong></small></span>";
 </script>
-
-<?php if ($action == "edit") { ?>
+<script src="<?php echo $js_url; ?>eval_checks.min.js"></script>
 <script>
 $(document).ready(function() {
+  
+  $("#courtesy-alert-warning-15").hide();
+  $("#warning-indicator-icon").hide();
+  
+  <?php if ($action == "edit") { ?>
   displayCalc(<?php echo $eval_score; ?>);
   checkScoreRange(<?php echo $eval_score; ?>,judgeScores,score_range,0);
   checkConsensus(consensusScores);
+  <?php }?>
+  
+  $('#show-hide-status-btn').click(function(){
+      $('#toggle-icon').toggleClass('fa-chevron-circle-up fa-chevron-circle-down');
+  });
+
 });
 </script>
-<?php }?>
 
 <style type="text/css">
 

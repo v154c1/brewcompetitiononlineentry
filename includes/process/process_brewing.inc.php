@@ -131,6 +131,8 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 		// Co Brewer
 		if ((isset($_POST['brewCoBrewer'])) && (!empty($_POST['brewCoBrewer']))) {
 
+			$brewCoBrewer = $purifier->purify(sterilize($_POST['brewCoBrewer']));
+
 			if ((isset($_SESSION['prefsLanguageFolder'])) && (in_array($_SESSION['prefsLanguageFolder'], $name_check_langs))) {
 		    	
 		    	$parsed_name = $name_parser->parse_name($brewCoBrewer);
@@ -148,8 +150,6 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 			    $brewCoBrewer = $first_name." ".$last_name;
 
 			}
-
-			$brewCoBrewer = $purifier->purify(sterilize($brewCoBrewer));
 
 		}
 		
@@ -186,7 +186,7 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 			$brewSweetnessLevel = number_format($brewSweetnessLevel,3);
 		}
 
-		// Juice Sorce - From multi-select
+		// Juice Source - From multi-select
 		if ((isset($_POST['brewJuiceSource'])) && (!empty($_POST['brewJuiceSource']))) {
 		    $juice_src = array("juice_src" => $_POST['brewJuiceSource']);
 		}
@@ -194,33 +194,18 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 		else $juice_src = array();
 
 		if ((isset($_POST['brewJuiceSourceOther'])) && (!empty($_POST['brewJuiceSourceOther']))) {
-
-		    $juice_src_other_arr = str_replace(", ",",",$_POST['brewJuiceSourceOther']);
-		    $juice_src_other_arr = str_replace(",",",",$_POST['brewJuiceSourceOther']);
-		    $juice_src_other_arr = str_replace("; ",",",$_POST['brewJuiceSourceOther']);
-		    $juice_src_other_arr = str_replace(";",",",$_POST['brewJuiceSourceOther']);
-		    $juice_src_other_arr = explode(",",$juice_src_other_arr);
-		    
-		    $juice_src_other = array();
-
-		    foreach ($juice_src_other_arr as $value) {  
-		        $value = $purifier->purify(sterilize($value));
-		        $juice_src_other[] = strtoupper($value);
-		    }
-
-		    if (!empty($juice_src_other)) $juice_src_other_arr = array("juice_src_other" => $juice_src_other);
-
+		    $juice_src_other = array("juice_src_other" => $_POST['brewJuiceSourceOther']);
 		}
 
-		else $juice_src_other_arr = array();
+		else $juice_src_other = array();
 
-		if ((empty($juice_src)) && (empty($juice_src_other_arr))) {
+		if ((empty($juice_src)) && (empty($juice_src_other))) {
 		    $brewJuiceSource = NULL;
 		}
 
 		else {
 		    $brewJuiceSource = array();
-		    $brewJuiceSource = array_merge($juice_src,$juice_src_other_arr);
+		    $brewJuiceSource = array_merge($juice_src,$juice_src_other);
 		    $brewJuiceSource = json_encode($brewJuiceSource);
 		}
 
@@ -426,15 +411,17 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 			'brewReceived' => blank_to_null($brewReceived),
 			'brewCoBrewer' => blank_to_null($brewCoBrewer),
 			'brewJudgingNumber' => blank_to_null($brewJudgingNumber),
-			'brewUpdated' => $db_conn->now(),
+			'brewUpdated' => date('Y-m-d H:i:s', time()),
 			'brewConfirmed' => blank_to_null(sterilize($_POST['brewConfirmed'])),
 			'brewBoxNum' => blank_to_null($brewBoxNum),
 			'brewABV' => blank_to_null($brewABV),
 			'brewJuiceSource' => blank_to_null($brewJuiceSource),
 			'brewSweetnessLevel' => blank_to_null($brewSweetnessLevel),
 			'brewPouring' => blank_to_null($brewPouring),
-			'brewStyleType' => blank_to_null($row_style_name['brewStyleType'])
+			'brewStyleType' => blank_to_null($row_style_name['brewStyleType']),
+			'brewPackaging' => blank_to_null(sterilize($_POST['brewPackaging']))
 		);
+
 		$result = $db_conn->insert ($update_table, $data);
 		if (!$result) {
 			$error_output[] = $db_conn->getLastError();
@@ -453,7 +440,10 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 		if ($section == "admin") {
 
 			if ($_POST['brewStyle'] == "0-A") $insertGoTo = $base_url."index.php?section=brew&go=entries&action=edit&filter=".$brewBrewerID."&id=".$id."&view=0-A&msg=4";
-			else $insertGoTo = $base_url."index.php?section=admin&go=entries&msg=1";
+			else {
+				if ((isset($_POST['return-to-add'])) && ($_POST['return-to-add'] == 1)) $insertGoTo = $base_url."index.php?section=brew&go=entries&action=add&filter=admin&msg=1";
+				else $insertGoTo = $base_url."index.php?section=admin&go=entries&msg=1";
+			}
 
 		}
 
@@ -463,7 +453,10 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 
 		}
 
-		else $insertGoTo = $base_url."index.php?section=list&msg=1";
+		else {
+			if ((isset($_POST['return-to-add'])) && ($_POST['return-to-add'] == 1)) $insertGoTo = $base_url."index.php?section=brew&go=entries&action=add&msg=1";
+			else $insertGoTo = $base_url."index.php?section=list&msg=1";
+		}
 
 		// Check if entry requires special ingredients or a classic style
 		if (check_special_ingredients($styleBreak,$_SESSION['prefsStyleSet'])) {
@@ -669,14 +662,15 @@ if ((isset($_SERVER['HTTP_REFERER'])) && ((isset($_SESSION['loginUsername'])) &&
 			'brewReceived' => $brewReceived,
 			'brewCoBrewer' => $brewCoBrewer,
 			'brewJudgingNumber' => $brewJudgingNumber,
-			'brewUpdated' => $db_conn->now(),
+			'brewUpdated' => date('Y-m-d H:i:s', time()),
 			'brewConfirmed' => sterilize($_POST['brewConfirmed']),
 			'brewBoxNum' => $brewBoxNum,
 			'brewABV' => blank_to_null($brewABV),
 			'brewJuiceSource' => blank_to_null($brewJuiceSource),
 			'brewSweetnessLevel' => blank_to_null($brewSweetnessLevel),
 			'brewPouring' => blank_to_null($brewPouring),
-			'brewStyleType' => blank_to_null($row_style_name['brewStyleType'])
+			'brewStyleType' => blank_to_null($row_style_name['brewStyleType']),
+			'brewPackaging' => blank_to_null(sterilize($_POST['brewPackaging']))
 		);
 		$db_conn->where ('id', $id);
 		$result = $db_conn->update ($update_table, $data);

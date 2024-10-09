@@ -25,7 +25,10 @@ $brewerPhone2 = "";
 $brewerJudgeWaiver = "Y";
 $brewerDropOff = 0;
 $brewerBreweryName = "";
+$brewerBreweryInfo = array();
 $brewerBreweryTTB = "";
+$brewerBreweryProd = "";
+$brewerBreweryProdMeas = "";
 $brewerJudge = "N";
 $brewerSteward = "N";
 $brewerStaff = "";
@@ -80,7 +83,11 @@ if (isset($_POST['brewerBreweryName'])) {
 if (isset($_POST['brewerBreweryTTB'])) {
     $brewerBreweryTTB = $purifier->purify($_POST['brewerBreweryTTB']);
     $brewerBreweryTTB = strtoupper($brewerBreweryTTB);
-    $brewerBreweryTTB = sterilize($brewerBreweryTTB);
+    $brewerBreweryInfo['TTB'] = sterilize($brewerBreweryTTB);
+}
+
+if (isset($_POST['brewerBreweryProd'])) {
+    $brewerBreweryInfo['Production'] = sterilize($_POST['brewerBreweryProd'])." ".sterilize($_POST['brewerBreweryProdMeas']);
 }
 
 if (isset($_POST['brewerJudge'])) $brewerJudge = $_POST['brewerJudge'];
@@ -98,7 +105,17 @@ if (isset($_POST['brewerJudgeNotes'])) {
 }
 
 if ((isset($_POST['brewerAssignment'])) && (!empty($_POST['brewerAssignment']))) {
-    $affilliated = array("affilliated" => $_POST['brewerAssignment']);
+
+    $aff = $_POST['brewerAssignment'];
+    $affiliated_cleaned = array();
+    foreach ($aff as $value) {
+        $value = $purifier->purify($value);
+        $value = sterilize($value);
+        $affiliated_cleaned[] = $value;
+    }
+
+    $affilliated = array("affilliated" => $affiliated_cleaned);
+
 }
 
 else $affilliated = array();
@@ -136,6 +153,8 @@ else {
     $brewerAssignment = json_encode($brewerAssignment);
 }
 
+if (empty($brewerBreweryInfo)) $brewerBreweryInfo = "";
+else $brewerBreweryInfo = json_encode($brewerBreweryInfo);
 
 // print_r($brewerAssignment); exit();
 

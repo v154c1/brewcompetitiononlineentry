@@ -5,6 +5,7 @@
  *
  */
 
+/*
 // Redirect if directly accessed without authenticated session
 if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername'])) && (!isset($base_url)))) {
     $redirect = "../../403.php";
@@ -12,6 +13,7 @@ if ((!isset($_SESSION['loginUsername'])) || ((isset($_SESSION['loginUsername']))
     header($redirect_go_to);
     exit();
 }
+*/
 
 $primary_page_info = "";
 $primary_links = "";
@@ -40,32 +42,25 @@ $print_bottle_labels = FALSE;
 if (($dropoff_window_open == 1) || ($shipping_window_open == 1) || ($entry_window_open == 1)) $print_bottle_labels = TRUE;
 
 $multiple_bottle_ids = FALSE;
-if ((($_SESSION['prefsEntryForm'] == "5") || ($_SESSION['prefsEntryForm'] == "6")) && $print_bottle_labels) $multiple_bottle_ids = TRUE;
+if (($_SESSION['prefsEntryForm'] >= "5") && ($print_bottle_labels)) $multiple_bottle_ids = TRUE;
 
-// Build Headers
-if (($total_to_pay > 0) && (!$disable_pay)) $pay_button .= sprintf("<a class=\"btn btn-success pull-right\" href=\"%s\"><i style=\"padding-right: 5px;\" class=\"fa fa-lg fa-money\"></i> %s</a>",$link_pay, $label_pay);
- 
+if (!$show_scores) {
+
+	$add_entry_link = "";
+	if ($_SESSION['userLevel'] <= "1") $add_entry_link .= $base_url."index.php?section=brew&amp;go=entries&amp;action=add&amp;filter=admin";
+	else $add_entry_link .= build_public_url("brew","entry","add","default",$sef,$base_url,"default");
+
+	$pay_button .= "<div class=\"btn-group hidden-print\" role=\"group\" aria-label=\"AddPayEntries\">";
+	if (($show_entries) && ($add_entry_link_show)) $pay_button .= sprintf("<a class=\"btn btn-primary\" href=\"%s\"><span class=\"fa fa-plus-circle\"></span> %s</a>",$add_entry_link,$label_add_entry);
+	if (($total_to_pay > 0) && (!$disable_pay)) $pay_button .= sprintf("<a class=\"btn btn-primary pull-right\" href=\"%s\"><i style=\"padding-right: 5px;\" class=\"fa fa-fw fa-money\"></i> %s</a>",$link_pay, $label_pay);
+	$pay_button .= "</div>";
+
+}
+
 if (($totalRows_log > 0) && ($show_scores)) {
 
 	$link_results_export = $base_url."includes/output.inc.php?section=export-personal-results&amp;id=".$_SESSION['brewerID'];
-
-	if (empty($_SESSION['brewerMHP'])) {
-
-		// Single link without MHP option.
-		$pay_button .= sprintf("<a href=\"%s\" class=\"btn btn-success hide-loader\" target=\"_blank\"><i class=\"fa fa-lg fa-file-csv\" style=\"margin-right: 8px;\"></i>%s</a>",$link_results_export, $label_results_export_personal);
-
-	} else {
-
-		// $link_results_export_mhp = $base_url."includes/output.inc.php?section=export-personal-results&amp;filter=MHP&amp;id=".$_SESSION['brewerID'];
-		$pay_button .= "<div class=\"btn-group pull-right\">";
-		$pay_button .= sprintf("<button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\"><i class=\"fa fa-lg fa-file-excel\" style=\"margin-right: 8px;\"></i>%s<span class=\"caret\" style=\"margin-left: 8px;\"></span></button>",$label_results_export_personal);
-		$pay_button .= "<ul class=\"dropdown-menu\">";
-		$pay_button .= sprintf("<li class=\"small\"><a class=\"hide-loader\" href=\"%s\" target=\"_blank\">%s</a></li>",$link_results_export,$label_general);
-		$pay_button .= "<li class=\"small disabled\"><a class=\"hide-loader\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"The MHP personal results download has been disabled by request from the MHP board. Results will now be submitted by the competition organizers on behalf of all MHP members who entered this competition. This option will be removed in a subsequent release.\">Master Homebrewer Program</a></li>";
-		$pay_button .= "</ul>";
-		$pay_button .= "</div>";
-
-	}
+	$pay_button .= sprintf("<a href=\"%s\" class=\"btn btn-success hide-loader\" target=\"_blank\"><i class=\"fa fa-lg fa-file-csv\" style=\"margin-right: 8px;\"></i>%s</a>",$link_results_export, $label_results_export_personal);
 
 }
 
@@ -74,7 +69,7 @@ $header1_1 .= "<hr>";
 if (!$show_scores) $header1_1 .= sprintf("<a class=\"anchor-offset\" name=\"entries\"></a><h2>%s</h2>",$label_entries);
 
 $header1_1 .= "<div class=\"row\">";
-$header1_1 .= "<div class=\"col col-xs-6 col-sm-9\">";
+$header1_1 .= "<div class=\"col col-xs-5 col-sm-6\">";
 
 if ($show_scores) {
 	$header1_1 .= sprintf("<a class=\"anchor-offset\" name=\"entries\"></a><h2>%s</h2>",$label_entries);
@@ -88,8 +83,8 @@ else {
 }
 
 $header1_1 .= "</div>";
-$header1_1 .= "<div class=\"col col-xs-6 col-sm-3\">";
-$header1_1 .= "<div style=\"margin-top: 10px;\">".$pay_button."</div>";
+$header1_1 .= "<div class=\"col col-xs-7 col-sm-6\">";
+$header1_1 .= "<div class=\"pull-right\" style=\"margin-top: 10px;\">".$pay_button."</div>";
 $header1_1 .= "</div>";
 $header1_1 .= "</div>";
 
@@ -176,11 +171,11 @@ if ($totalRows_log > 0) {
 
 		if (!empty($row_log['brewABV'])) $required_info .= "<li><strong>".$label_abv.":</strong> ".$row_log['brewABV']."%</li>";
 
-
 		if (($_SESSION['prefsStyleSet'] == "NWCiderCup") && (!empty($row_log['brewJuiceSource']))) {
 		  
 			$juice_src_arr = json_decode($row_log['brewJuiceSource'],true);
 			$juice_src_disp = "";
+			$juice_src_disp_other = "";
 
 			if (is_array($juice_src_arr['juice_src'])) {
 				$juice_src_disp .= implode(", ",$juice_src_arr['juice_src']);
@@ -188,18 +183,21 @@ if ($totalRows_log > 0) {
 			}
 
 			if ((isset($juice_src_arr['juice_src_other'])) && (is_array($juice_src_arr['juice_src_other']))) {
-				$juice_src_disp .= implode(", ",$juice_src_arr['juice_src_other']);
-				$juice_src_disp .= ", ";
+				$juice_src_disp_other .= implode(", ",$juice_src_arr['juice_src_other']);
+				$juice_src_disp_other .= ", ";
 			}
 
 			$juice_src_disp = rtrim($juice_src_disp,",");
 			$juice_src_disp = rtrim($juice_src_disp,", ");
+			$juice_src_disp_other = rtrim($juice_src_disp_other,",");
+			$juice_src_disp_other = rtrim($juice_src_disp_other,", ");
 
 			$required_info .= "<li><strong>".$label_juice_source."</strong>: ".$juice_src_disp."</li>";
+			$required_info .= "<li><strong>".$label_fruit_add_source."</strong>: ".$juice_src_disp_other."</li>";
 		
 		}
 
-		if (!empty($row_log['brewPouring'])) {
+		if ((!empty($row_log['brewPouring'])) && ((!empty($row_log['brewStyleType'])) && ($row_log['brewStyleType'] == 1))) {
 			$pouring_arr = json_decode($row_log['brewPouring'],true);
 			$required_info .= "<li><strong>".$label_pouring.":</strong> ".$pouring_arr['pouring']."</li>";
 			if ((isset($pouring_arr['pouring_notes'])) && (!empty($pouring_arr['pouring_notes']))) $required_info .= "<li><strong>".$label_pouring_notes.":</strong> ".$pouring_arr['pouring_notes']."</li>";
@@ -209,6 +207,8 @@ if ($totalRows_log > 0) {
 		if (!empty($row_log['brewPossAllergens'])) {
 			$allergen_info .= $label_possible_allergens.": ".$row_log['brewPossAllergens'];
 		}
+
+		if (!empty($row_log['brewPackaging'])) $required_info .= "<li><strong>".$label_packaging.":</strong> ".$packaging_display[$row_log['brewPackaging']]."</li>";
 
 		$entry_number = sprintf("%06s",$row_log['id']);
 		$judging_number = sprintf("%06s",$row_log['brewJudgingNumber']);
@@ -335,6 +335,8 @@ if ($totalRows_log > 0) {
 
 		if (!empty($required_info)) $entry_output .= " <a class=\"hide-loader\" role=\"button\" data-toggle=\"collapse\" data-target=\"#collapseEntryInfo".$row_log['id']."\" aria-expanded=\"false\" aria-controls=\"collapseEntryInfo".$row_log['id']."\"><span class=\"fa fa-info-circle\"></span></a> ";
 
+		if (!empty($row_log['brewCoBrewer'])) $entry_output .= sprintf("<br><em class=\"small\">%s: ".$row_log['brewCoBrewer']."</em>",$label_cobrewer);
+
 		if (!empty($required_info)) {
 			$entry_output .= "<div style=\"margin-top: 8px;\" class=\"collapse small alert alert-info\" id=\"collapseEntryInfo".$row_log['id']."\">";
 			$entry_output .= "<ul class='list-unstyled'>";
@@ -351,20 +353,20 @@ if ($totalRows_log > 0) {
 	    	$entry_output .= "</div>";
 		}
 
-		if (!empty($row_log['brewCoBrewer'])) $entry_output .= sprintf("<br><em class=\"small\">%s: ".$row_log['brewCoBrewer']."</em>",$label_cobrewer);
-
 		$entry_output .= "<p class=\"well small hidden-lg\" style=\"margin-top: 10px; padding:10px;\">";
 
 		$entry_output .= $label_entry_number.": ".$entry_number."<br>";
 
-		if ($show_scores) {
-			$entry_output .= $label_judging_number.": ".$judging_number."<br>";
-		}
+		if ($show_scores)  $entry_output .= $label_judging_number.": ".$judging_number."<br>";
 
 		if (!empty($st_disp_list)) $entry_output .= $st_disp_list.": ";
 		$entry_output .= $row_log['brewStyle'];
 
-		if (!$show_scores) {
+		if ($show_scores) {
+			if (minibos_check($row_log['id'],$judging_scores_db_table)) $entry_output .= "<br>".$label_mini_bos." <i class=\"fa fa-sm fa-fw fa-check text-success\"></i>";
+		}
+
+		else {
 			if ($row_log['brewConfirmed'] == 0) $entry_output .= "<br><span class=\"text-danger\">".$label_confirmed." <i class=\"fa fa-sm fa-fw fa-times\"></i></span>";
 			else $entry_output .= "<br><span class=\"text-success\">".$label_confirmed." <i class=\"fa fa-fw fa-check\"></i></span>";
 			if ($row_log['brewPaid'] == 0) $entry_output .= "<br><span class=\"text-danger\">".$label_paid." <i class=\"fa fa-sm fa-fw fa-times\"></i></span>";
@@ -409,12 +411,21 @@ if ($totalRows_log > 0) {
 
 
 			if ($multiple_bottle_ids) {
+				
 				$entry_output .= "<td>";
-				$entry_output .= "<div class=\"checkbox\"><label>";
-				if (((pay_to_print($_SESSION['prefsPayToPrint'],$row_log['brewPaid'])) && (!$comp_paid_entry_limit)) || (($comp_paid_entry_limit) && ($row_log['brewPaid'] == 1))) $entry_output .= "<input class=\"entry-print\" name=\"id[]\" type=\"checkbox\" value=\"".$row_log['id']."\">";
+				
+				if (($row_log['brewReceived'] == 0) && (((pay_to_print($_SESSION['prefsPayToPrint'],$row_log['brewPaid'])) && (!$comp_paid_entry_limit)) || (($comp_paid_entry_limit) && ($row_log['brewPaid'] == 1)))) {
+					$entry_output .= "<div class=\"checkbox\">";
+					$entry_output .= "<label>";
+					$entry_output .= "<input class=\"entry-print\" name=\"id[]\" type=\"checkbox\" value=\"".$row_log['id']."\">";
+					$entry_output .= "</label>";
+					$entry_output .= "</div>";
+				}
+
 				else $entry_output .= "<span class=\"fa fa-lg fa-times text-danger\"></span>";
-				$entry_output .= "</label></div>";
+				
 				$entry_output .= "</td>";
+				
 			}
 
 		}
@@ -452,7 +463,7 @@ if ($totalRows_log > 0) {
 
 		if ((($entry_window_open == 1) && ($row_log['brewReceived'] == 0)) || (($entry_window_open != 1) && ($row_log['brewReceived'] == 0) && (time() < $entry_edit_deadline))) {
 
-			$edit_link .= "<a href=\"".$base_url."index.php?section=brew&amp;action=edit&amp;id=".$row_log['id'];
+			$edit_link .= "<a href=\"".$base_url."index.php?section=brew&amp;go=entry&amp;action=edit&amp;id=".$row_log['id'];
 			if ($row_log['brewConfirmed'] == 0) $edit_link .= "&amp;msg=1-".$brewCategory."-".$row_log['brewSubCategory'];
 			$edit_link .= "&amp;view=".$brewCategory."-".$row_log['brewSubCategory'];
 			$edit_link .= "\" data-toggle=\"tooltip\" title=\"Edit ".$entry_name."\">";
@@ -604,7 +615,7 @@ if (($totalRows_log > 0) && ($entry_window_open >= 1)) {
 </table>
 <?php if ((!$show_scores) && ($multiple_bottle_ids)) { ?>
 <div style="margin-top: 20px;">
-<input type="submit" id="btn" class="btn btn-primary pull-right hidden-print" value="<?php echo $brewer_entries_text_024; ?>" disabled data-toggle="popover" data-container="body" data-trigger="hover focus" data-placement="auto right" title="<?php echo $brewer_entries_text_022; ?>" data-content="<?php echo $brewer_entries_text_023; ?>">
+<button type="submit" id="btn" class="btn btn-primary pull-right hidden-print" disabled data-toggle="popover" data-container="body" data-trigger="hover focus" data-placement="auto right" title="<?php echo $brewer_entries_text_022; ?>" data-content="<?php echo $brewer_entries_text_023; ?>"><i class='fa fa-print'></i> <?php echo $brewer_entries_text_022; ?></button>
 </div>
 <?php } ?>
 </form>

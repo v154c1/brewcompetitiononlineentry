@@ -71,7 +71,7 @@ if (!$logged_in) {
 	elseif (($registration_open == 2) && ($judge_window_open == 1)) $page_info2 .= sprintf("%s <strong class=\"text-success\">%s</strong> %s %s.", $entry_info_text_006,$entry_info_text_007,$entry_info_text_008, $judge_closed);
 	else $page_info2 .= sprintf("<p>%s</p>",$entry_info_text_009);
 }
-else $page_info2 .= sprintf("<p class=\"lead\">%s %s! <small><a href=\"%s\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"%s\">%s</a></small></p>",$entry_info_text_010,$_SESSION['brewerFirstName'],build_public_url("list","default","default","default",$sef,$base_url),$entry_info_text_011,$entry_info_text_012);
+else $page_info2 .= sprintf("<p class=\"lead\">%s %s! <small><a href=\"%s\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"%s\">%s</a></small></p>",$entry_info_text_010,$_SESSION['brewerFirstName'],build_public_url("list","default","default","default",$sef,$base_url,"default"),$entry_info_text_011,$entry_info_text_012);
 
 if ($show_entries) {
 	// Entry Window
@@ -118,14 +118,66 @@ if ($show_entries) {
 			$page_info5 .= $anchor_top;
 		}
 
-		if ((!empty($row_limits['prefsUserEntryLimit'])) || (!empty($row_limits['prefsUserSubCatLimit'])) || (!empty($row_limits['prefsUSCLExLimit']))) {
+		if ((!empty($row_limits['prefsUserEntryLimit'])) || (!empty($row_limits['prefsUserSubCatLimit'])) || (!empty($row_limits['prefsUSCLExLimit'])) || ($incremental)) {
+			
 			$anchor_links[] = $label_entry_per_entrant;
 			$anchor_name = str_replace(" ", "-", $label_entry_per_entrant);
 			$header1_16 .= sprintf("<a class=\"anchor-offset\" name=\"%s\"></a><h2>%s</h2>",strtolower($anchor_name),$label_entry_per_entrant);
 
-			if (!empty($row_limits['prefsUserEntryLimit'])) {
-				if ($row_limits['prefsUserEntryLimit'] == 1) $page_info16 .= sprintf("<p>%s %s %s.</p>",$entry_info_text_021,$row_limits['prefsUserEntryLimit'],$entry_info_text_022);
-				else $page_info16 .= sprintf("<p>%s %s %s.</p>",$entry_info_text_021,$row_limits['prefsUserEntryLimit'],$entry_info_text_023);
+			if ($incremental) {
+
+				$page_info16 .= "<table class='table table-bordered'>";
+				$page_info16 .= "<thead>";
+				$page_info16 .= sprintf("<tr><th>%s</th><th>%s</th></tr>",$label_limit,ucwords($sidebar_text_027));
+				$page_info16 .= "</thead>";
+				$page_info16 .= "<tbody>";
+				if (time() < $limit_date_1) $page_info16 .= "<tr class='bg-info text-primary'>";
+				else  $page_info16 .= "<tr>";
+				$page_info16 .= sprintf("<td>%s %s</td><td>%s</td>",$incremental_limits[1]['limit-number'], $label_entries, getTimeZoneDateTime($_SESSION['prefsTimeZone'], $limit_date_1, $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "$sidebar_date_format", "date-time"));
+				$page_info16 .= "</tr>";
+				
+				if (!empty($limit_date_2)) {
+					if ($current_limit == 2) $page_info16 .= "<tr class='bg-info text-primary'>";
+					else $page_info16 .= "<tr>";
+					$page_info16 .= sprintf("<td>%s %s</td><td>%s</td>",$incremental_limits[2]['limit-number'], $label_entries, getTimeZoneDateTime($_SESSION['prefsTimeZone'], $limit_date_2, $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "$sidebar_date_format", "date-time"));
+					$page_info16 .= "</tr>";
+				}
+
+				if (!empty($limit_date_3)) {
+					if ($current_limit == 3) $page_info16 .= "<tr class='bg-info text-primary'>";
+					else $page_info16 .= "<tr>";
+					$page_info16 .= sprintf("<td>%s %s</td><td>%s</td>",$incremental_limits[3]['limit-number'], $label_entries, getTimeZoneDateTime($_SESSION['prefsTimeZone'], $limit_date_3, $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "$sidebar_date_format", "date-time"));
+					$page_info16 .= "</tr>";
+				}
+
+				if (!empty($limit_date_4)) {
+					if ($current_limit == 4) $page_info16 .= "<tr class='bg-info text-primary'>";
+					else $page_info16 .= "<tr>";
+					$page_info16 .= sprintf("<td>%s %s</td><td>%s</td>",$incremental_limits[4]['limit-number'], $label_entries, getTimeZoneDateTime($_SESSION['prefsTimeZone'], $limit_date_4, $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "$sidebar_date_format", "date-time"));
+					$page_info16 .= "</tr>";
+				}
+
+				if (!empty($real_overall_user_entry_limit)) {	
+					if ($current_limit == 0) $page_info16 .= "<tr class='bg-info text-primary'>";
+					else $page_info16 .= "<tr>";
+					$page_info16 .= sprintf("<td>%s %s</td><td>%s</td>",$real_overall_user_entry_limit, $label_entries, $entry_closed);
+					$page_info16 .= "</tr>";
+				}
+
+				$page_info16 .= "</tbody>";
+				$page_info16 .= "</table>";
+
+			}
+
+			else {
+
+				if (!empty($row_limits['prefsUserEntryLimit'])) {
+
+					if ($row_limits['prefsUserEntryLimit'] == 1) $page_info16 .= sprintf("<p>%s %s %s.</p>",$entry_info_text_021,$row_limits['prefsUserEntryLimit'],$entry_info_text_022);
+					else $page_info16 .= sprintf("<p>%s %s %s.</p>",$entry_info_text_021,$row_limits['prefsUserEntryLimit'],$entry_info_text_023);
+
+				}
+
 			}
 
 			if (!empty($row_limits['prefsUserSubCatLimit'])) {
@@ -167,7 +219,7 @@ if ($show_entries) {
 			if ($_SESSION['prefsCash'] == "Y") $page_info6 .= sprintf("<li>%s</li>",$entry_info_text_032);
 			if ($_SESSION['prefsCheck'] == "Y") $page_info6 .= sprintf("<li>%s <em>%s</em></li>",$entry_info_text_033,$_SESSION['prefsCheckPayee']);
 			if ($_SESSION['prefsPaypal'] == "Y") $page_info6 .= sprintf("<li>%s</li>",$entry_info_text_034);
-			//if ($_SESSION['prefsGoogle'] == "Y") $page_info6 .= "<li>Google Wallet</li>";
+			if (($_SESSION['prefsCash'] == "N") && ($_SESSION['prefsCheck'] == "N") && ($_SESSION['prefsPaypal'] == "N")) $page_info6 .= "<li>".$entry_info_text_055."</li>";
 			$page_info6 .= "</ul>";
 			$page_info6 .= $anchor_top;
 
@@ -231,14 +283,14 @@ else $page_info8 .= sprintf("<p>%s</p>",$entry_info_text_046);
 
 $style_set = $_SESSION['style_set_short_name'];
 
-if ($_SESSION['prefsStyleSet'] == "NWCiderCup") $label_judging_styles = $label_categories_accepted;
+if ($_SESSION['prefsStyleSet'] == "NWCiderCup") {
+	$label_styles_accepted = $label_categories_accepted;
+	$label_judging_styles = $label_judging_categories;
+}
 $anchor_links[] = $label_judging_styles;
 $anchor_name = str_replace(" ", "-", $label_judging_styles);
 
-if ($entry_window_open < 2) {
-	$header1_8 .= sprintf("<a class=\"anchor-offset\" name=\"%s\"></a><h2>%s %s</h2>",strtolower($anchor_name),$style_set,$label_styles_accepted);
-	if ($_SESSION['prefsStyleSet'] == "NWCiderCup") $header1_8 .= sprintf("<a class=\"anchor-offset\" name=\"%s\"></a><h2>%s %s</h2>",strtolower($anchor_name),$style_set,$label_categories_accepted);
-}
+if ($entry_window_open < 2) $header1_8 .= sprintf("<a class=\"anchor-offset\" name=\"%s\"></a><h2>%s %s</h2>",strtolower($anchor_name),$style_set,$label_styles_accepted);
 else $header1_8 .= sprintf("<a class=\"anchor-offset\" name=\"%s\"></a><h2>%s %s</h2>",strtolower($anchor_name),$style_set,$label_judging_styles);
 
 $page_info8 .= "<table class=\"table table-striped table-bordered table-responsive\">";

@@ -1291,7 +1291,7 @@ if ($setup_free_access == TRUE) {
 			'id' => 1,
 			'version' => '2.1.10.0',
 			'version_date' => $current_version_date_display,
-			'data_check' => $db_conn->now(),
+			'data_check' => date('Y-m-d H:i:s', time()),
 			'setup' => 0,
 			'setup_last_step' => 0
 		);
@@ -1332,14 +1332,14 @@ if ($setup_free_access == TRUE) {
 
 		/**
 		 * -------------------------------------------------
-		 * Make sure all off-schedule updates have also
-		 * been instantiated.
+		 * Make sure all updates have also for 2.1.8.0 
+		 * foward have been instantiated.
 		 * -------------------------------------------------
 		 */
 
-		$output .= "<h3>Other Installation Items</h3>";
+		$output .= "<h3>Installation Items</h3>";
 		$output .= "<ul>";
-		include(UPDATE.'off_schedule_update.php');
+		include(UPDATE.'run_update.php');
 		$output .= "</ul>";
 
 	}

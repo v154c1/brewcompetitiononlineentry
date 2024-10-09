@@ -6,6 +6,7 @@
  *
  */
 
+/*
 // Redirect if directly accessed
 if ((!isset($_SESSION['prefs'.$prefix_session])) || ((isset($_SESSION['prefs'.$prefix_session])) && (!isset($base_url)))) {
     $redirect = "../../index.php";
@@ -13,25 +14,33 @@ if ((!isset($_SESSION['prefs'.$prefix_session])) || ((isset($_SESSION['prefs'.$p
     header($redirect_go_to);
     exit();
 }
+*/
 
 if ($row_scored_entries['count'] > 0) {
 
 	$category_end = $_SESSION['style_set_category_end'];
-
-	$a = styles_active(2,$go);
-	//print_r($a);
 	
-	foreach (array_unique($a) as $style) {
+	$a = json_decode($_SESSION['prefsSelectedStyles'],true);
+	$actual_styles = array();
 
-		$style = explode("^",$style);
+	foreach ($a as $key => $value) {
+		$actual_styles[] = array(
+			"id" => $key,
+			"brewStyle" => $value['brewStyle'],
+			"brewStyleGroup" => $value['brewStyleGroup'],
+			"brewStyleNum" => $value['brewStyleNum']			
+		);
+	}
+	
+	foreach ($actual_styles as $key => $value) {
 
 		include (DB.'winners_subcategory.db.php');
 
 		// Display all winners
 		if ($row_entry_count['count'] > 0) {
+			
 			if ($row_entry_count['count'] > 1) $entries = "entries"; else $entries = "entry";
 			if ($row_score_count['count'] > 0) {
-
 
 			$primary_page_info = "";
 			$header1_1 = "";
@@ -43,8 +52,8 @@ if ($row_scored_entries['count'] > 0) {
 			$table_body1 = "";
 
 			// Build headers
-			if ($winner_style_set == "BA") $header1_1 .= sprintf("<h3>%s (%s %s)</h3>",$style[2],$row_entry_count['count'],$entries);
-			else $header1_1 .= sprintf("<h3>%s %s%s: %s <small>%s %s</small></h3>",$label_category,ltrim($style[0],"0"),$style[1],$style[2],$row_entry_count['count'],$entries);
+			if ($winner_style_set == "BA") $header1_1 .= sprintf("<h3>%s (%s %s)</h3>",$value,$row_entry_count['count'],$entries);
+			else $header1_1 .= sprintf("<h3>%s %s%s: %s <small>%s %s</small></h3>",$label_category,ltrim($value['brewStyleGroup'],"0"),$value['brewStyleNum'],$value['brewStyle'],$row_entry_count['count'],$entries);
 
 			// Build table headers
 			$table_head1 .= "<tr>";
@@ -126,9 +135,11 @@ if ($row_scored_entries['count'] > 0) {
 
 				$table_body1 .= "<td width=\"25%\">";
 				$table_body1 .= $style.": ".$style_long;
-				if ((!empty($row_scores['brewInfo'])) && ($section != "results")) {
-					$table_body1 .= " <a href=\"#".$row_scores['id']."\"  tabindex=\"0\" role=\"button\" data-toggle=\"popover\" data-trigger=\"hover\" data-placement=\"auto top\" data-container=\"body\" title=\"".$label_info."\" data-content=\"".str_replace("^", " ", $row_scores['brewInfo'])."\"><span class=\"hidden-xs hidden-sm hidden-md hidden-print fa fa-info-circle\"></span></a></td>";
+
+				if ((!empty($row_scores['brewInfo'])) && ($section != "results") && ($section != "past-winners")) {
+					$table_body1 .= " <a href=\"#".$row_scores['id']."\"  tabindex=\"0\" role=\"button\" data-toggle=\"popover\" data-trigger=\"hover\" data-placement=\"auto top\" data-container=\"body\" title=\"".$label_info."\" data-content=\"".str_replace("^", " ", $row_scores['brewInfo'])."\"><span class=\"hidden-xs hidden-sm hidden-md hidden-print fa fa-info-circle\"></span></a>";
 				}
+				
 				$table_body1 .= "</td>";
 
 				if ($_SESSION['prefsProEdition'] == 0) {

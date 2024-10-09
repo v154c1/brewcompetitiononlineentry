@@ -151,13 +151,14 @@ function build_form_action($base_url,$section,$go,$action,$filter,$id,$dbTable,$
 	return $return;
 }
 
-function build_public_url($section="default",$go="default",$action="default",$id="default",$sef,$base_url) {
+function build_public_url($section="default",$go="default",$action="default",$id="default",$sef,$base_url,$view="default") {
 	
 	if ($_SESSION['prefsSEF'] == 'Y') {
 		$url = $base_url."";
 		if ($section != "default") $url .= $section."/";
 		if ($go != "default") $url .= $go."/";
 		if ($action != "default") $url .= $action."/";
+		if ($view != "default") $url .= $view."/";
 		if ($id != "default") $url .= $id."/";
 		return rtrim($url,"/");
 	}
@@ -166,6 +167,7 @@ function build_public_url($section="default",$go="default",$action="default",$id
 		$url = $base_url."index.php?section=".$section;
 		if ($go != "default") $url .= "&amp;go=".$go;
 		if ($action != "default") $url .= "&amp;action=".$action;
+		if ($view != "default") $url .= "&amp;view=".$view;
 		if ($id != "default") $url .= "&amp;id=".$id;
 		return $url;
 	}
@@ -824,7 +826,7 @@ function total_fees($entry_fee, $entry_fee_discount, $entry_discount, $entry_dis
 			$brewer = mysqli_query($connection,$query_brewer) or die (mysqli_error($connection));
 			$row_brewer = mysqli_fetch_array($brewer, MYSQLI_BOTH);
 
-			if ($totalRows_entries > 0) {
+			if (($totalRows_entries > 0) && ($row_brewer)) {
 				if (($row_brewer['brewerDiscount'] == "Y") && ($special_discount_number != "")) {
 					if ($entry_discount == "Y") {
 						$a = $entry_discount_number * $special_discount_number;
@@ -1012,7 +1014,7 @@ function total_fees_paid($entry_fee, $entry_fee_discount, $entry_discount, $entr
 			$brewer = mysqli_query($connection,$query_brewer) or die (mysqli_error($connection));
 			$row_brewer = mysqli_fetch_array($brewer);
 
-			if ($totalRows_entries > 0) {
+			if (($totalRows_entries > 0) && ($row_brewer)) {
 
 				if (($row_brewer['brewerDiscount'] == "Y") && ($special_discount_number != "")) {
 					if ($entry_discount == "Y") {
@@ -1045,7 +1047,7 @@ function total_fees_paid($entry_fee, $entry_fee_discount, $entry_discount, $entr
 			} // end if ($row_brewer['brewerDiscount'] == "Y")
 
 
-				if (($row_brewer['brewerDiscount'] != "Y") || ((($row_brewer['brewerDiscount'] == "Y")) && ($special_discount_number == ""))) {
+			if (($row_brewer['brewerDiscount'] != "Y") || ((($row_brewer['brewerDiscount'] == "Y")) && ($special_discount_number == ""))) {
 				if ($entry_discount == "Y") {
 						// Determine if the amount paid is equal or less than the discount amount
 						// If so, total paid is a simple calculation
@@ -1929,7 +1931,7 @@ function get_table_info($input,$method,$table_id,$dbTable,$param,$base_url="") {
 					$styles = mysqli_query($connection,$query_styles) or die (mysqli_error($connection));
 					$row_styles = mysqli_fetch_assoc($styles);
 
-					$b[] = style_number_const($row_styles['brewStyleGroup'],$row_styles['brewStyleNum'],$_SESSION['style_set_display_separator'],0).",&nbsp;";
+					if ($row_styles) $b[] = style_number_const($row_styles['brewStyleGroup'],$row_styles['brewStyleNum'],$_SESSION['style_set_display_separator'],0).",&nbsp;";
 
 				}
 
@@ -1959,15 +1961,19 @@ function get_table_info($input,$method,$table_id,$dbTable,$param,$base_url="") {
 				$styles = mysqli_query($connection,$query_styles) or die (mysqli_error($connection));
 				$row_styles = mysqli_fetch_assoc($styles);
 
-				if ($_SESSION['jPrefsTablePlanning'] == 1) $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
-				else $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s' AND brewReceived='1'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
+				if ($row_styles) {
 
-				$style_count = mysqli_query($connection,$query_style_count) or die (mysqli_error($connection));
-				$row_style_count = mysqli_fetch_assoc($style_count);
+					if ($_SESSION['jPrefsTablePlanning'] == 1) $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
+					else $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s' AND brewReceived='1'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
 
-				$debug .= $query_style_count."<br>";
+					$style_count = mysqli_query($connection,$query_style_count) or die (mysqli_error($connection));
+					$row_style_count = mysqli_fetch_assoc($style_count);
 
-				if ((isset($row_style_count['count'])) && ($row_style_count['count'] > 0)) $c[] = $row_style_count['count'];
+					$debug .= $query_style_count."<br>";
+
+					if ((isset($row_style_count['count'])) && ($row_style_count['count'] > 0)) $c[] = $row_style_count['count'];
+
+				}
 
 			}
 			
@@ -2013,14 +2019,18 @@ function get_table_info($input,$method,$table_id,$dbTable,$param,$base_url="") {
 					$styles = mysqli_query($connection,$query_styles) or die (mysqli_error($connection));
 					$row_styles = mysqli_fetch_assoc($styles);
 
-					if ($_SESSION['jPrefsTablePlanning'] == 1) $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
-					else $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s' AND brewReceived='1'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
-					$style_count = mysqli_query($connection,$query_style_count) or die (mysqli_error($connection));
-					$row_style_count = mysqli_fetch_assoc($style_count);
+					if ($row_styles) {
+						
+						if ($_SESSION['jPrefsTablePlanning'] == 1) $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
+						else $query_style_count = sprintf("SELECT COUNT(*) as count FROM %s WHERE brewCategorySort='%s' AND brewSubCategory='%s' AND brewReceived='1'", $brewing_db_table, $row_styles['brewStyleGroup'], $row_styles['brewStyleNum']);
+						$style_count = mysqli_query($connection,$query_style_count) or die (mysqli_error($connection));
+						$row_style_count = mysqli_fetch_assoc($style_count);
 
-					$debug .= $query_style_count."<br>";
+						$debug .= $query_style_count."<br>";
 
-					if ((isset($row_style_count['count'])) && ($row_style_count['count'] > 0)) $c[] = $row_style_count['count'];
+						if ((isset($row_style_count['count'])) && ($row_style_count['count'] > 0)) $c[] = $row_style_count['count'];
+					
+					}
 
 				}
 
@@ -2166,7 +2176,8 @@ function table_location($table_id,$date_format,$time_zone,$time_format,$method) 
 		$table = mysqli_query($connection,$query_table) or die (mysqli_error($connection));
 		$row_table = mysqli_fetch_assoc($table);
 
-		$query_location = sprintf("SELECT * FROM %s WHERE id='%s'", $prefix."judging_locations", $row_table['tableLocation']);
+		if ($row_table) $query_location = sprintf("SELECT * FROM %s WHERE id='%s'", $prefix."judging_locations", $row_table['tableLocation']);
+		else $query_location = sprintf("SELECT * FROM %s", $prefix."judging_locations");
 		
 	}
 
@@ -2432,6 +2443,10 @@ function brewer_info($uid,$filter="default") {
 		$row_brewer_info = mysqli_fetch_assoc($brewer_info);
 	}
 
+	$tbb = array();
+
+	if (($_SESSION['prefsProEdition'] == 1) && (!empty($row_brewer_info['brewerBreweryInfo']))) $ttb = json_decode($row_brewer_info['brewerBreweryInfo'],true);
+
 	$r = "";
 	$r .= $row_brewer_info['brewerFirstName']."^"; 		// 0
 	$r .= $row_brewer_info['brewerLastName']."^"; 		// 1
@@ -2454,7 +2469,8 @@ function brewer_info($uid,$filter="default") {
 	$r .= $row_brewer_info['brewerCountry']."^";		// 14
 	if ($_SESSION['prefsProEdition'] == 1) $r .= $row_brewer_info['brewerBreweryName']."^"; else $r .= "&nbsp;^"; // 15
 	if ($row_brewer_info['brewerJudgeMead'] == "Y") $r .= "Certified Mead Judge"; else $r .= "&nbsp;^"; // 16
-	if ($_SESSION['prefsProEdition'] == 1) $r .= $row_brewer_info['brewerBreweryTTB']."^"; else $r .= "&nbsp;^";// 17
+	if (($_SESSION['prefsProEdition'] == 1) && (isset($ttb['TTB'])) && (!empty($ttb['TTB']))) $r .= $ttb['TTB']."^"; else $r .= "&nbsp;^";// 17
+	if (($_SESSION['prefsProEdition'] == 1) && (isset($ttb['Production'])) && (!empty($ttb['Production']))) $r .= $ttb['Production']."^"; else $r .= "&nbsp;^";// 17
 	return $r;
 }
 
@@ -2986,7 +3002,7 @@ function data_integrity_check() {
 	}
 
 	$update_table = $prefix."bcoem_sys";
-	$data = array('data_check' => $db_conn->now());
+	$data = array('data_check' => date('Y-m-d H:i:s', time()));
 	$db_conn->where ('id', 1);
 	$result = $db_conn->update ($update_table, $data);
 	if (!$result) $errors += 1;
@@ -3079,8 +3095,7 @@ function table_exists($table_name) {
 	else return FALSE;
 }
 
-function judge_assignment($uid, $loc_id)
-{
+function judge_assignment($uid, $loc_id) {
 	// Get judge table assignments by locations
 	require(CONFIG.'config.php');
 	mysqli_select_db($connection,$database);
@@ -4529,6 +4544,10 @@ function eval_exits($eid="default",$method="default",$dbTable) {
 
 // See https://core.trac.wordpress.org/browser/tags/4.1/src/wp-includes/formatting.php
 function remove_accents($string) {
+
+	// Converts all accent characters to ASCII characters.
+	// If there are no accent characters, then the string given is just returned.
+
     if (!preg_match('/[\x80-\xff]/', $string)) return $string;
 
     $chars = array(
@@ -5159,5 +5178,48 @@ function scrub_filename($filename) {
 	$scrub_characters = array("&" => "", "?" => "", "=" => "", "%" => "", "\"" => "", "'" => "", "$" => "", "*" => "");
 	$filename = strtr($filename, $scrub_characters);
 	return $filename;
+}
+
+function clean_filename($filename) {
+
+	// Get the file extension
+	$file_extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+	// Get the file name without the extension 
+	$file_name = pathinfo($filename, PATHINFO_FILENAME); 
+
+	// Call function in common.lib.php to convert accented characters to ASCII
+	$file_name = remove_accents($file_name);
+
+	// Call function in common.lib.php to remove characters like &, $, etc.
+	$file_name = scrub_filename($file_name);
+
+	// Replace spaces with dashes
+	$file_name = str_replace(' ', '-', $file_name);
+
+	// Replace underscores with dashes
+	$file_name = str_replace('_', '-', $file_name);
+
+	// Remove any remaining special characters
+	$file_name = preg_replace('/[^A-Za-z0-9\-\_]/', '', $file_name); 
+
+	// Strip any html or php tags
+	$file_name = strip_tags($file_name);
+
+	// Strip any slashes
+	$file_name = stripcslashes($file_name);
+	$file_name = stripslashes($file_name);
+
+	// Failsafe in case the remove_accents function missed something
+	$file_name = filter_var($file_name, FILTER_UNSAFE_RAW, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_ENCODE_HIGH);
+
+	// Replace two or more dashes together with a single dash
+	$file_name = preg_replace('/-+/', '-', $file_name); 
+
+	// Add extension back
+	$cleaned_file = $file_name.".".$file_extension;
+
+	return $cleaned_file;
+
 }
 ?>
