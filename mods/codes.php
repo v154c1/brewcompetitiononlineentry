@@ -193,7 +193,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         <?php
 
 //        echo '<div class="label-title">' . $row_sql['brewStyle'] . '</div>';
-        echo '<div class="label-number">' . $id_prefix . '-9', $row_sql['brewId'] . '</div>';
+        echo '<div class="label-number">' . $id_prefix . '-', $row_sql['brewId'] . '</div>';
 
 //        require_once(CLASSES . 'qr_code/qrClass.php');
 //        $qr = new qRClas();
