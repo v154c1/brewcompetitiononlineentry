@@ -133,11 +133,11 @@ function score_input($points, $input_name, $label, $initial_value, $notes, $hint
 
 score_input($appearance_points, "evalAppearanceScore", "Vzhled", $row_eval['evalAppearanceScore'], "barva, pěna, čirost, trvanlivost, struktura, jiné", "0 = nepěkné, 3 = velice hezké");
 
-score_input($aroma_points, "evalAromaScore", "Aroma / vůně", $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné", "0 = puch, 12 = čistá, příjemná, ve style");
+score_input($aroma_points, "evalAromaScore", "Aroma / vůně", $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné", "0 = puch, 12 = čistá, příjemná, ve stylu");
 
 
 
-score_input($flavor_points, "evalFlavorScore", "Chuť", $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné", "0 = odporné, 20 = vynikající");
+score_input($flavor_points, "evalFlavorScore", "Chuť", $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyváženost, dochuť, jiné", "0 = odporné, 20 = vynikající");
 
 score_input($mouthfeel_points, "evalMouthfeelScore", "Pocit po napití", $row_eval['evalMouthfeelScore'], "tělo, sycení, hřejivost, sametovost, svíravost, jiné", "0 = nepitelné, 5 = příjemné bez vad");
 
@@ -145,9 +145,10 @@ score_input($overall_points, "evalOverallScore", "Celkový charakter", $row_eval
 
 
 ?>
-
+<h3>Celkové hodnocení: komentář</h3>
+<h4>Slovní hodnocení, vady, pocity, požitky, nedostatky, nadšení</h4>
 <div class="form-group">
-    <label for="evalOverallComments"><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></label>
+
     <textarea class="form-control" id="evalOverallComments" name="evalOverallComments" rows="6" placeholder=""
               data-error="<?php echo $evaluation_info_061; ?>"
               required><?php if ($action == "edit") echo htmlentities($row_eval['evalOverallComments']); ?></textarea>

@@ -12,7 +12,8 @@ if ($score == 0 && $row_eval['evalFinalScore'] == 13) {
     $score2 = $row_eval['evalFinalScore'] * 2;
     ?>
 
-    <h2>Pivo nebylo ohodnoceno</h2>
+    <h2>Pivo nebylo plně ohodnoceno, viz komentář.</h2>
+    <h3>Uděleno zdvořilostní skóre.</h3>
     <h5><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></h5>
     <p><?php echo htmlentities($row_eval['evalOverallComments']); ?></p>
     <h5 class="header-h5 header-bdr-bottom"><?php echo $label_total; ?><span class="pull-right"><span
@@ -37,7 +38,7 @@ if ($score == 0 && $row_eval['evalFinalScore'] == 13) {
     <!-- Flavor -->
     <h5 class="header-h5 header-bdr-bottom"><?php echo $label_flavor; ?><span class="pull-right"><span
                     class="judge-score"><?php echo $row_eval['evalFlavorScore']; ?></span>/<?php echo $flavor_possible; ?></span>
-    </h5><h6>slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné</h6>
+    </h5><h6>slad, chmel, hořkost, kvašení, vyváženost, dochuť, jiné</h6>
 
     <!-- Mouthfeel (Beer only) -->
     <h5 class="header-h5 header-bdr-bottom"><?php echo $label_mouthfeel ?><span class="pull-right"><span
@@ -50,7 +51,10 @@ if ($score == 0 && $row_eval['evalFinalScore'] == 13) {
     </h5><h6>daný styl, vady, požitek</h6>
 
 
-    <h5><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></h5>
+    <h5 class="header-h5 header-bdr-bottom">Celkové hodnocení: komentář</h5>
+    <h6>Slovní hodnocení, vady, pocity, požitky, nedostatky, nadšení</h6>
+
+<!--    <h5>--><?php //echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?><!--</h5>-->
     <p><?php echo htmlentities($row_eval['evalOverallComments']); ?></p>
 
 
