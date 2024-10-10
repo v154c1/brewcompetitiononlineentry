@@ -62,6 +62,20 @@ foreach ($html_output as $current_row) {
 }
 
 $flaws_table .= "</table>";
+
+if ($score == 0 && $row_eval['evalFinalScore'] == 13) {
+    $score2 = $row_eval['evalFinalScore'] * 2;
+    ?>
+
+    <h2>Pivo nebylo plně ohodnoceno, viz komentář.</h2>
+    <h3>Uděleno zdvořilostní skóre.</h3>
+    <h5><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></h5>
+    <p><?php echo htmlentities($row_eval['evalOverallComments']); ?></p>
+    <h5 class="header-h5 header-bdr-bottom"><?php echo $label_total; ?><span class="pull-right"><span
+                    class="judge-score"><?php echo $row_eval['evalFinalScore']; ?>&nbsp;*&nbsp;2&nbsp;=&nbsp;<?php echo $score2; ?></span>/100</span>
+    </h5>
+    <?php
+} else {
 ?>
 <!-- Appearance -->
 <h5 class="header-h5 header-bdr-bottom"><?php echo $label_appearance; ?><span class="pull-right"><span class="judge-score"><?php echo $row_eval['evalAppearanceScore']; ?></span>/<?php echo $appearance_possible; ?></span></h5><h6>barva, pěna, čirost, držení, struktura, jiné</h6>
@@ -93,3 +107,7 @@ $flaws_table .= "</table>";
 <!--</div>-->
 
 <h5 class="header-h5 header-bdr-bottom"><?php echo $label_total; ?><span class="pull-right"><span class="judge-score"><?php echo $score; ?>&nbsp;*&nbsp;2&nbsp;=&nbsp;<?php echo $score2; ?></span>/100</span></h5>
+
+<?php
+}
+?>

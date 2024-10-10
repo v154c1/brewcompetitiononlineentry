@@ -10,194 +10,160 @@ $overall_points = 10;
 $style_correctness_points = 10;
 
 
-$overall_score_processed = 0;
+//$overall_score_processed = 0;
+
 if ($action == "edit") {
     $overall_score_processed = $row_eval['evalOverallScore'] - $row_eval['evalStyleAccuracy'];
     if (!is_numeric($overall_score_processed) || $overall_score_processed < 0) {
-        $overall_score_processed = 0;
+        unset($overall_score_processed);
     }
 }
 
 asort($flaws);
 ?>
 
-<input type="hidden" name="evalFormType" value="3">
+<!--<input type="hidden" name="evalFormType" value="3">-->
 
-<!-- Appearance -->
-<h3 class="section-heading"><?php echo $label_appearance; ?></h3>
-<h4>barva, pěna, čirost, držení, struktura, jiné</h4>
-<!-- Appearance Score -->
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalAppearanceScore"><?php echo $label_score; ?>
-                (<?php echo $appearance_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalAppearanceScore" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php for ($i = $appearance_points; $i >= 0; $i--) {
-                    if (($action == "edit") && ($i == $row_eval['evalAppearanceScore'])) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
+<style>
+    .score-button-group {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .score-button {
+        flex: 4.8% 1 0;
+        padding: 6px 6px;
+    }
+
+
+</style>
+
+<script>
+    function set_score(event) {
+        console.log(event);
+        const element = event.target;
+        const inp = element.getAttribute('data-score-input');
+        const val = element.getAttribute('data-score-value');
+        if (!inp || !val) {
+            return;
+        }
+        const q = `input[name="${inp}"]`;
+        $(q).val(val);
+        // // console.log(q, $(q).val());
+        score_button_classes();
+    }
+
+
+    function score_button_classes() {
+        const btns = $('button[data-score-input]');
+        // console.log(btns);
+        for (const btn of btns) {
+            // console.log(btn);
+            const inp = btn.getAttribute('data-score-input');
+            const val = btn.getAttribute('data-score-value');
+            if (!inp || !val) {
+                continue;
+            }
+            const inp_value = $(`input[name="${inp}"]`).val();
+            if (val == inp_value) {
+                btn.classList.remove('btn-secondary');
+                if (val == 0) {
+                    btn.classList.add('btn-danger');
+                } else {
+                    btn.classList.add('btn-primary');
+                }
+            } else {
+                btn.classList.add('btn-secondary');
+                btn.classList.remove('btn-primary');
+                btn.classList.remove('btn-danger');
+            }
+        }
+        calculateSum(0);
+
+    }
+
+    function prepare_score_buttons() {
+        const btns = $('button[data-score-input]');
+        // console.log(btns);
+        for (const btn of btns) {
+            // console.log(btn);
+            const inp = btn.getAttribute('data-score-input');
+            const val = btn.getAttribute('data-score-value');
+            if (!inp || !val) {
+                continue;
+            }
+            btn.addEventListener('click', set_score);
+        }
+    }
+
+
+    $(document).ready(() => {
+        prepare_score_buttons();
+        score_button_classes();
+    })
+</script>
+
+<?php
+
+function score_input($points, $input_name, $label, $initial_value, $notes, $hints, $step = 1)
+{
+
+    ?>
+    <h3 class="section-heading"><?php echo $label; ?></h3>
+    <h4><?php echo $notes; ?></h4>
+    <h5><?php echo $hints; ?></h5>
+    <div class="form-group">
+        <div class="row">
+
+            <div class="col-md-3 col-sm-12 col-xs-12">
+                <label for="<?php echo $input_name; ?>">
+                    <?php echo $label; ?>
+                </label>
+            </div>
+            <div class="col-md-9 col-sm-12 col-xs-12 container">
+                <input type="number" min="0" max="<?php echo $points ?>" name="<?php echo $input_name; ?>"
+                       value="<?php echo $initial_value; ?>" class="form-control score-choose row" placeholder="" required
+                       onblur="score_button_classes()">
+                <div class="btn-group row score-button-group" role="group">
+                    <?php for ($i = 0; $i <= $points; $i=$i+$step) { ?>
+                        <button type="button" class="btn score-button  "
+                                data-score-value="<?php echo $i; ?>"
+                                data-score-input="<?php echo $input_name; ?>"
+                        ><?php echo $i; ?></button>
+
+                    <?php } ?>
+                </div>
+                <div class="help-block small with-errors"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Aroma -->
-<h3 class="section-heading"><?php echo $label_aroma; ?></h3>
-<h4>slad, chmel, kvašení, jiné</h4>
+    <?php
+}
 
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalAromaScore"><?php echo $label_score; ?>
-                (<?php echo $aroma_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalAromaScore" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php
-                for ($i = $aroma_points; $i >= 0; $i--) {
-                    if (($action == "edit") && ($i == $row_eval['evalAromaScore'])) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
-        </div>
-    </div>
-</div>
+?>
+<?php
+
+score_input($appearance_points, "evalAppearanceScore", "Vzhled", $row_eval['evalAppearanceScore'], "barva, pěna, čirost, trvanlivost, struktura, jiné", "0 = nepěkné, 2 = velice hezké");
+
+score_input($aroma_points, "evalAromaScore", "Aroma / vůně", $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné", "0 = puch, 8 = čistá, příjemná, ve stylu");
 
 
-<!-- Flavor -->
-<h3 class="section-heading"><?php echo $label_flavor; ?></h3>
-<h4>slad, chmel, hořkost, kvašení, vyvážnost, dochuť, jiné</h4>
-<!-- Flavor Score -->
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalFlavorScore"><?php echo $label_score; ?>
-                (<?php echo $flavor_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalFlavorScore" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php for ($i = $flavor_points; $i >= 0; $i--) {
-                    if (($action == "edit") && ($i == $row_eval['evalFlavorScore'])) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
-        </div>
-    </div>
-</div>
 
-<!-- Mouthfeel -->
-<h3 class="section-heading"><?php echo $label_mouthfeel; ?></h3>
-<h4>tělo, sycení, hřejivost, sametovost, svíravost, jiné</h4>
-<!-- Mouthfeel Score -->
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalMouthfeelScore"><?php echo $label_score; ?>
-                (<?php echo $mouthfeel_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalMouthfeelScore" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php for ($i = $mouthfeel_points; $i >= 0; $i--) {
-                    if (($action == "edit") && ($i == $row_eval['evalMouthfeelScore'])) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
-        </div>
-    </div>
-</div>
+score_input($flavor_points, "evalFlavorScore", "Chuť", $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyváženost, dochuť, jiné", "0 = odporné, 10 = vynikající");
 
-<!-- Overall Impression -->
-<h3 class="section-heading"><?php echo $label_overall_impression; ?></h3>
-<h4>daný styl, vady, požitek</h4>
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalOverallScore"><?php echo $label_score; ?>
-                (<?php echo $overall_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalOverallScore" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php for ($i = $overall_points; $i >= 0; $i--) {
-                    if (($action == "edit") && ($i == $overall_score_processed)) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
-        </div>
-    </div>
-</div>
+score_input($mouthfeel_points, "evalMouthfeelScore", "Pocit po napití", $row_eval['evalMouthfeelScore'], "tělo, sycení, hřejivost, sametovost, svíravost, jiné", "0 = nepitelné, 10 = příjemné bez vad");
 
-<h3 class="section-heading"><?php echo $label_style_accuracy; ?></h3>
-<h6>musí korespondovat se zadáním stylu</h6>
+score_input($overall_points, "evalOverallScore", "Celkový charakter", $overall_score_processed, "daný styl, vady, požitek", "0 = nepitelné, 10 = báječné");
 
-<div class="form-group">
-    <div class="row">
-        <div class="col-md-3 col-sm-12 col-xs-12">
-            <label for="evalStyleAccuracy"><?php echo $label_score; ?>
-                (<?php echo $style_correctness_points; ?> <?php echo strtolower($label_possible_points); ?>)</label>
-        </div>
-        <div class="col-md-9 col-sm-12 col-xs-12">
-            <select class="form-control selectpicker score-choose" name="evalStyleAccuracy" id="type" data-size="10"
-                    required>
-                <option value=""></option>
-                <?php for ($i = $style_correctness_points; $i >= 0; $i-=10) {
-                    if (($action == "edit") && ($i == $row_eval['evalStyleAccuracy'])) $selected = "selected";
-                    else $selected = "";
-                    ?>
-                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
-                <?php } ?>
-            </select>
-            <div class="help-block small with-errors"></div>
-        </div>
-    </div>
-</div>
+score_input($style_correctness_points, "evalStyleAccuracy", "Stylová přesnost",  $row_eval['evalStyleAccuracy'], "daný styl, vady, požitek", "0 = nepitelné, 10 = báječné", 10);
 
-<!-- Style Accuracy -->
-<!--<div class="form-group">-->
-<!--    <div class="row">-->
-<!--        <div class="col-md-3 col-sm-12 col-xs-12">-->
-<!--            <label for="evalStyleAccuracy">--><?php //echo $label_style_accuracy; ?><!--</label>-->
-<!--        </div>-->
-<!--        <div class="col-md-9 col-sm-12 col-xs-12 small">-->
-<!--            <div style="margin-left: 10px">-->
-<!--                <input class="form-control score-choose" type="text" name="evalStyleAccuracy" data-provide="slider"-->
-<!--                       data-slider-ticks="[0,10]"-->
-<!--                       data-slider-ticks-labels='["--><?php //echo $label_not_style; ?><!--", "--><?php //echo $label_classic_example; ?><!--"]'-->
-<!--                       data-slider-min="0" data-slider-max="10" data-slider-step="10"-->
-<!--                       data-slider-value="--><?php //if ($action == "edit") echo $row_eval['evalStyleAccuracy']; else echo "0"; ?><!--"-->
-<!--                       data-slider-tooltip="hide">-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    <div class="help-block small with-errors"></div>-->
-<!--</div>-->
+?>
+
+
+
 
 <div class="form-group">
     <label for="evalOverallComments"><?php echo sprintf("%s: %s", $label_overall_impression, $label_comments); ?></label>
@@ -224,32 +190,7 @@ asort($flaws);
         else $flaw_none = TRUE;
     }
     ?>
-    <div class="form-group">
-        <div class="row">
-            <div class="col-md-3 col-sm-12 col-xs-12">
-                <label for="evalFlaws"><?php echo $flaw; ?></label>
-            </div>
-            <div class="col-md-9 col-sm-12 col-xs-12 small">
-                <label class="radio-inline">
-                    <input type="radio" name="evalFlaws<?php echo $flaw; ?>"
-                           value="" <?php if (($action == "add") || ($flaw_none)) echo "checked"; ?>><?php echo $label_na; ?>
-                </label>
-                <label class="radio-inline">
-                    <input type="radio" name="evalFlaws<?php echo $flaw; ?>"
-                           value="<?php echo $flaw . " " . $label_low; ?>" <?php if ($flaw_low) echo "checked"; ?>><?php echo $label_low; ?>
-                </label>
-                <label class="checkbox-inline">
-                    <input type="radio" name="evalFlaws<?php echo $flaw; ?>"
-                           value="<?php echo $flaw . " " . $label_medium; ?>" <?php if ($flaw_med) echo "checked"; ?>> <?php echo $label_med; ?>
-                </label>
-                <label class="radio-inline">
-                    <input type="radio" name="evalFlaws<?php echo $flaw; ?>"
-                           value="<?php echo $flaw . " " . $label_high; ?>" <?php if ($flaw_high) echo "checked"; ?>> <?php echo $label_high; ?>
-                </label>
-            </div>
-        </div>
 
-    </div>
     <?php } ?>
 -->
 
