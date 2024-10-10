@@ -75,6 +75,41 @@ if (isset($_GET['csv'])) {
 
     }
 
+    function showPouring($pouringRaw)
+    {
+        global $output_csv;
+        $sep = $output_csv? "\n" : "<br>";
+        $pouringInfo ="";
+
+        if ($pouringRaw && $pouringRaw != "[]") {
+            $pouringDecoded =  json_decode($pouringRaw, true);
+            if ($pouringDecoded) {
+                if (array_key_exists('pouring', $pouringDecoded)) {
+                    $speed = $pouringDecoded['pouring'];
+                    if ($speed == "Fast") {
+                        $pouringInfo = $pouringInfo."Nalévat rychle".$sep;
+                    } else if ($speed == "Slow") {
+                        $pouringInfo = $pouringInfo."Nalévat pomalu".$sep;
+                    }
+                }
+                if (array_key_exists('pouring_rouse', $pouringDecoded)) {
+                    if ($pouringDecoded['pouring_rouse'] == "Yes") {
+                        $pouringInfo = $pouringInfo."Probudit kvasnice".$sep;
+                    }
+                }
+
+                if (array_key_exists('pouring_notes', $pouringDecoded)) {
+                    $notes = $pouringDecoded['pouring_notes'];
+                    if ($notes) {
+                        $pouringInfo = $pouringInfo.$notes;
+                    }
+                }
+
+            }
+        }
+
+        return $pouringInfo;
+    }
 
     function put_line($line, $header = FALSE)
     {
@@ -109,8 +144,11 @@ if (isset($_GET['csv'])) {
     $headers[] = "Podsládek";
     $headers[] = "Název vzorku";
     $headers[] = "Kategorie";
+    $headers[] = "ABV";
     $headers[] = "Info";
     $headers[] = "Komentář";
+    $headers[] = "Alergeny";
+    $headers[] =  "Instrukce nalevani";
     $headers[] = "Hodnocení";
     $headers[] = "Zaplaceno";
     $headers[] = "Přijato";
@@ -127,11 +165,12 @@ if (isset($_GET['csv'])) {
     $db = new MysqliDb($connection);
     $db->join($prefix . "judging_scores score", "score.eid=brewing.id", "LEFT");
     $db->orderBy("brewing.id", "asc");
-    $entries = $db->get($prefix . "brewing as brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, brewInfo, brewComments, brewName, score.scoreEntry");
+    $entries = $db->get($prefix . "brewing as brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, brewInfo, brewComments, brewName, score.scoreEntry, brewABV, brewPouring, brewPossAllergens");
 
     foreach ($entries as $entry) {
 //    print_r($entry);
 
+        
         $line = array();
         $line[] = $entry['brewId'];
         $line[] = html_entity_decode($entry['brewBrewerLastName']);
@@ -139,8 +178,11 @@ if (isset($_GET['csv'])) {
         $line[] = html_entity_decode($entry['brewCoBrewer']);
         $line[] = html_entity_decode($entry['brewName']);
         $line[] = html_entity_decode($entry['brewStyle']);
+        $line[] = $entry['brewABV'];
         $line[] = html_entity_decode($entry['brewInfo']);
         $line[] = html_entity_decode($entry['brewComments']);
+        $line[] = html_entity_decode($entry['brewPossAllergens']);
+        $line[] = showPouring(html_entity_decode($entry['brewPouring']));
         $line[] = $entry['scoreEntry'];
         $line[] = $entry['brewPaid'];
         $line[] = $entry['brewReceived'];
