@@ -2063,7 +2063,7 @@ $brew_text_042 = "Por favor, proporciona el grado alcohólico por volumen hasta 
 $brew_text_043 = "Sólo números - se aceptan decimales hasta el centésimo lugar (por ejemplo, 5.2, 12.84, etc.).";
 $brew_text_044 = "Por favor, proporciona la gravedad específica final hasta el milésimo lugar (por ejemplo, 0.991, 1.000, 1.007, etc.).";
 $brew_text_045 = "Por favor, proporciona la(s) fuente(s) de jugo - selecciona todas las que correspondan.";
-$brew_text_046 = "Por favor, especifica la abreviatura de dos letras del estado/provincia de cualquier otra(s) fuente(s) de jugo (por ejemplo, VT, ME, CA, ON, etc.). Separa la abreviatura de cada ubicación con coma (,) o punto y coma (;). Algunos símbolos no están permitidos, incluyendo comillas dobles (&quot;) y porcentaje (&#37;).";
+$brew_text_046 = "Por favor, especifica la abreviatura de dos letras del estado/provincia de cualquier otra(s) fuente(s) de jugo (por ejemplo, VT, ME, CA, ON, etc.).";
 $brew_text_047 = "¿Cómo debería ser vertida tu entrada para los jueces?";
 $brew_text_048 = "¿Debería ser revuelta alguna levadura antes de verter?";
 $brew_text_049 = "Proporciona información adicional sobre cómo debería ser vertida tu entrada u otros elementos relacionados (por ejemplo, posibles erupciones, etc.).";
@@ -2103,6 +2103,27 @@ $label_yearly_volume = "Volumen Anual";
 $label_gallons = "Galones";
 $label_barrels = "Barriles";
 $label_hectoliters = "Hectolitros";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.1 Additions
+ * ------------------------------------------------------------------------
+ */
+$sidebar_text_027 = "vigente hasta";
+$entry_info_text_055 = "No se especifican métodos de pago en el sistema en este momento. Consulte las reglas del concurso o contacte al organizador.";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.2 Additions
+ * ------------------------------------------------------------------------
+ */
+$brew_text_055 = "¿Volver aquí para añadir otra entrada?";
+$brewer_info_015 = "<p>Parece que te has registrado para servir como juez o asistente, pero no has indicado que estás disponible para ninguna sesión de evaluación en ninguno de los roles.</p><p>Por favor, selecciona el botón a continuación para editar tu cuenta y luego selecciona \"Sí\" para cada una de las sesiones en las que estés disponible como juez en la sección de Disponibilidad de Sesiones de Evaluación y aquellas en las que estés disponible como asistente en la sección de Disponibilidad de Sesiones de Asistencia.</p><p>Si no estás disponible para ninguna sesión en alguno o ambos roles, selecciona \"No\" en las secciones de Evaluación y/o Asistencia.</p>";
+$brewer_info_016 = "<p>Parece que te has registrado para servir como juez, pero no has indicado que estás disponible para ninguna sesión de evaluación.</p><p>Por favor, selecciona el botón a continuación para editar tu cuenta y luego selecciona \"Sí\" para cada una de las sesiones en las que estés disponible como juez en la sección de Disponibilidad de Sesiones de Evaluación.</p><p>Si no estás disponible para ninguna sesión, selecciona \"No\" en la sección de Evaluación.</p>";
+$brewer_info_017 = "<p>Parece que te has registrado para servir como asistente, pero no has indicado que estás disponible para ninguna sesión de evaluación.</p><p>Por favor, selecciona el botón a continuación para editar tu cuenta y luego selecciona \"Sí\" para cada una de las sesiones en las que estés disponible como asistente en la sección de Disponibilidad de Sesiones de Asistencia.</p><p>Si no estás disponible para ninguna sesión, selecciona \"No\" en la sección de Evaluación.</p>";
+$brewer_info_018 = "<strong>Has indicado que estás dispuesto a servir como juez, pero no has indicado que estés disponible para ninguna sesión de evaluación listada.</strong> Por favor, edita la información de tu cuenta y selecciona \"Sí\" para una o más sesiones de evaluación.";
+$brewer_info_019 = "<strong>Has indicado que estás dispuesto a servir como asistente, pero no has indicado que estés disponible para ninguna sesión de asistencia listada.</strong> Por favor, edita la información de tu cuenta y selecciona \"Sí\" para una o más sesiones de asistencia.";
+$brewer_info_020 = "<strong>Ya se le ha asignado una mesa como juez o comisario.</strong> Si desea cambiar su disponibilidad, póngase en contacto con el organizador de la competición o con el coordinador de jueces.";
 
 /**
  * ----------------------------------------------------------------------------------

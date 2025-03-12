@@ -575,7 +575,7 @@ $header_text_086 = "All entry styles have been converted from BJCP 2008 to BJCP 
 $header_text_087 = "Data deleted successfully.";
 $header_text_088 = "The judge/steward has been added successfully. Remember to assign the user as a judge or steward before assigning to tables.";
 $header_text_089 = "The file has been uploaded successfully. Check the list to verify.";
-$header_text_090 = "The file that was attempted to be uploaded is not an accepted file type.";
+$header_text_090 = "The file that was attempted to be uploaded is not an accepted file type and/or it exceeds the maximum file size.";
 $header_text_091 = "File(s) deleted successfully.";
 $header_text_092 = "The test email has been generated. Be sure to check your spam folder.";
 $header_text_093 = "The user&rsquo;s password has been changed. Be sure to let them know what their new password is!";
@@ -1315,7 +1315,7 @@ $brewer_entries_text_016 = "Style Entered NOT Accepted";
 $brewer_entries_text_017 = "Entries will not be displayed as received until the competition staff has marked them as such in the system. Typically, this occurs AFTER all entries have been collected from all drop-off and shipping locations and sorted.";
 $brewer_entries_text_018 = "You will not be able to print this entry's paperwork (bottle labels, etc.) until it has been marked as paid.";
 $brewer_entries_text_019 = "Printing of entry paperwork is not available at this time.";
-$brewer_entries_text_020 = "Editing of entries is not available at this time. If you wish to edit your entry, contact a competition official.";
+$brewer_entries_text_020 = "Editing of this entry is not available. This can be due to a number of factors (e.g., the edit deadline has passed or your entry has already been marked as received, etc.). If you wish to edit this entry, contact a competition official.";
 if (SINGLE) $brewer_info_000 = "Hello";
 else $brewer_info_000 = "Thank you for participating in the";
 $brewer_info_001 = "Your account details were last updated";
@@ -1451,10 +1451,10 @@ $label_submitting = "Submitting";
 $label_additional_info = "Entries with Additional Info";
 $label_working = "Working";
 $output_text_030 = "Please stand by.";
-$brewer_entries_text_021 = "Check the entries to print their bottle labels. Select the top checkbox to check or uncheck all the boxes in the column.";
-$brewer_entries_text_022 = "Print All Bottle Labels for Checked Entries";
-$brewer_entries_text_023 = "The bottle labels will open in a new tab or window.";
-$brewer_entries_text_024 = "Print Bottle Labels";
+$brewer_entries_text_021 = "Check the entries to print their bottle/can labels. Select the top checkbox to check or uncheck all the boxes in the column.";
+$brewer_entries_text_022 = "Print Labels for All Entries Checked Above";
+$brewer_entries_text_023 = "The labels will open in a new tab or window.";
+$brewer_entries_text_024 = "Print Selected Entry Labels";
 
 /**
  * ------------------------------------------------------------------------
@@ -1936,7 +1936,7 @@ $register_text_052 = "A \"Yes\" or \"No\" response is required for each location
 $brewer_text_044 = "Do you wish to change your security question and/or answer?";
 $brewer_text_045 = "No results have been recorded.";
 $brewer_text_046 = "For free-form club name entry, some symbols are not allowed, including ampersand (&amp;), single-quotation marks (&#39;), double-quotation marks (&quot;), and percent (&#37;).";
-$brewer_text_047 = "If you are not available for any of the sessions listed below, but still can serve as as staff member in another capacity, keep \"Yes\" selected above.";
+$brewer_text_047 = "If you are not available for any of the sessions listed when you select \"Yes\" above, but still are able to serve as as staff member in another capacity, please keep \"Yes\" as your response.";
 $brewer_text_048 = "Shipping Entries";
 $brewer_text_049 = "Select \"Not Applicable\" if you don't plan to submit any entries into the competition at this time.";
 $brewer_text_050 = "Select \"Shipping Entries\" if you plan to box up and send your entries to the provided Shipping Location.";
@@ -2043,7 +2043,7 @@ $brew_text_042 = "Please provide the alcohol by volume up to the hundredth place
 $brew_text_043 = "Numbers only - decimals acceptable to the hundredth place (e.g., 5.2, 12.84, etc.).";
 $brew_text_044 = "Please provide finishing specific gravity to the thousandth place (e.g., 0.991, 1.000, 1.007, etc.).";
 $brew_text_045 = "Please provide applicable source(s).";
-$brew_text_046 = "Please specify the origin of all fruit additions in this cider. Fruit additions are all fruit/juice added to the beverage that is not the apple or pear base.<p>Separate each location's abbreviation by comma (,) or semi-colon (;). Some symbols are not allowed, including double-quotation marks (&quot;) and percent (&#37;).";
+$brew_text_046 = "Please specify the origin of all fruit additions in this cider. Fruit additions are all fruit/juice added to the beverage that is not the apple or pear base.";
 $brew_text_047 = "How should your entry be poured for the judges?";
 $brew_text_048 = "Should any yeast be roused before pouring?";
 $brew_text_049 = "Provide further information regarding how your entry should be poured or other related items (e.g., possible gushing, etc.).";
@@ -2083,6 +2083,27 @@ $label_yearly_volume = "Yearly Volume";
 $label_gallons = "Gallons";
 $label_barrels = "Barrels";
 $label_hectoliters = "Hectoliters";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.1 Additions
+ * ------------------------------------------------------------------------
+ */
+$sidebar_text_027 = "enforced until";
+$entry_info_text_055 = "No payment methods are specified in the system at this time. Check the competition rules or contact the organizer.";
+
+/**
+ * ------------------------------------------------------------------------
+ * Version 2.7.2 Additions
+ * ------------------------------------------------------------------------
+ */
+$brew_text_055 = "Return here to add another entry?";
+$brewer_info_015 = "<p>It appears that you've signed up to serve as a judge or steward, but have not indicated that you are available for any judging session for either role.</p><p>Please select the button below to edit your account and then select \"Yes\" for each of the sessions you are available to judge in the Judging Session Availability and those that you are available as a steward in the Stewarding Session Availability section.</p><p>If you are not available for any session for either or both roles, please select \"No\" in the Judging and/or Stewarding section.</p>";
+$brewer_info_016 = "<p>It appears that you've signed up to serve as a judge, but have not indicated that you are available for any judging session.</p><p>Please select the button below to edit your account and then select \"Yes\" for each of the sessions you are available to judge in the Judging Session Availability section.</p><p>If you are not available for any session, please select \"No\" in the Judging section.</p>";
+$brewer_info_017 = "<p>It appears that you've signed up to serve as a steward, but have not indicated that you are available for any judging session.</p><p>Please select the button below to edit your account and then select \"Yes\" for each of the sessions you are available to serve as a steward in the Stewarding Session Availability section.</p><p>If you are not available for any session, please select \"No\" in the Judging section.</p>";
+$brewer_info_018 = "<strong>You have indicated that you are willing to serve as a judge but have not indicated that you are available for any listed judging session.</strong> Please edit your account info and select \"Yes\" to one or more judging sessions.";
+$brewer_info_019 = "<strong>You have indicated that you are willing to serve as a steward but have not indicated that you are available for any listed stewarding session.</strong> Please edit your account info and select \"Yes\" to one or more stewarding sessions.";
+$brewer_info_020 = "<strong>You have already been assigned to a table as a judge or steward</strong>. If you wish to change your availability, please contact the competition organizer or judge coordinator.";
 
 /**
  * ----------------------------------------------------------------------------------

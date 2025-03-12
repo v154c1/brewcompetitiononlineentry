@@ -151,13 +151,14 @@ function build_form_action($base_url,$section,$go,$action,$filter,$id,$dbTable,$
 	return $return;
 }
 
-function build_public_url($section="default",$go="default",$action="default",$id="default",$sef,$base_url) {
+function build_public_url($section="default",$go="default",$action="default",$id="default",$sef,$base_url,$view="default") {
 	
 	if ($_SESSION['prefsSEF'] == 'Y') {
 		$url = $base_url."";
 		if ($section != "default") $url .= $section."/";
 		if ($go != "default") $url .= $go."/";
 		if ($action != "default") $url .= $action."/";
+		if ($view != "default") $url .= $view."/";
 		if ($id != "default") $url .= $id."/";
 		return rtrim($url,"/");
 	}
@@ -166,6 +167,7 @@ function build_public_url($section="default",$go="default",$action="default",$id
 		$url = $base_url."index.php?section=".$section;
 		if ($go != "default") $url .= "&amp;go=".$go;
 		if ($action != "default") $url .= "&amp;action=".$action;
+		if ($view != "default") $url .= "&amp;view=".$view;
 		if ($id != "default") $url .= "&amp;id=".$id;
 		return $url;
 	}
@@ -2535,6 +2537,9 @@ function get_participant_count($type,$filter="") {
 	if ($type == 'steward') $query_participant_count = sprintf("SELECT COUNT(*) as 'count' FROM %s WHERE brewerSteward='Y'",$brewer_db_table);
 	if ($type == 'staff') $query_participant_count = sprintf("SELECT COUNT(*) as 'count' FROM %s WHERE brewerStaff='Y'",$brewer_db_table);
 	if ($type == 'staff-assigned') $query_participant_count = sprintf("SELECT COUNT(*) as 'count' FROM %s WHERE staff_staff=1",$staff_db_table);
+	
+	if ($type == 'organizer-assigned') $query_participant_count = sprintf("SELECT a.uid, b.brewerFirstName, b.brewerLastName, b.uid FROM %s a, %s b WHERE a.staff_organizer=1 AND a.uid = b.uid LIMIT 1",$staff_db_table,$brewer_db_table);
+	
 	if ($type == 'received-entrant') $query_participant_count = sprintf("SELECT COUNT(DISTINCT brewBrewerID) as 'count' FROM %s WHERE brewReceived='1'",$brewing_db_table);
 	if ($type == 'with-entries') $query_participant_count = sprintf("SELECT COUNT(DISTINCT brewBrewerId) as 'count' FROM %s",$prefix."brewing");
 	if ($type == 'received-club') $query_participant_count = sprintf("SELECT COUNT(DISTINCT b.brewerClubs) as 'count' FROM %s a, %s b WHERE b.uid = a.brewBrewerID AND b.brewerClubs IS NOT NULL", $brewing_db_table, $brewer_db_table);
@@ -2545,7 +2550,24 @@ function get_participant_count($type,$filter="") {
 	// they would like to be a judge, steward, or staff
 	// SELECT sum(count) AS total_count FROM ((SELECT COUNT(DISTINCT uid) as count FROM $brewer_db_table WHERE brewerJudge='Y' OR brewerSteward='Y' OR brewerStaff='Y') UNION ALL (SELECT COUNT(DISTINCT brewBrewerID) as count FROM $brewing_db_table))t;
 
-	return $row_participant_count['count'];
+	$return_arr = array();
+
+	if ($row_participant_count) {
+		
+		if ($type == 'organizer-assigned') {
+			$return_arr = array(
+				'first_name' => $row_participant_count['brewerFirstName'],
+				'last_name' => $row_participant_count['brewerLastName'],
+				'uid' => $row_participant_count['uid']
+			);
+
+			return $return_arr;
+		} 
+
+		else return $row_participant_count['count'];
+	}
+
+		
 }
 
 function display_place($place,$method) {
@@ -3000,7 +3022,7 @@ function data_integrity_check() {
 	}
 
 	$update_table = $prefix."bcoem_sys";
-	$data = array('data_check' => $db_conn->now());
+	$data = array('data_check' => date('Y-m-d H:i:s', time()));
 	$db_conn->where ('id', 1);
 	$result = $db_conn->update ($update_table, $data);
 	if (!$result) $errors += 1;
@@ -3093,8 +3115,7 @@ function table_exists($table_name) {
 	else return FALSE;
 }
 
-function judge_assignment($uid, $loc_id)
-{
+function judge_assignment($uid, $loc_id) {
 	// Get judge table assignments by locations
 	require(CONFIG.'config.php');
 	mysqli_select_db($connection,$database);
@@ -3118,7 +3139,7 @@ function table_assignments($uid,$method,$time_zone,$date_format,$time_format,$me
 	if ($method2 == 2) $output = array();
 	else $output = "";
 
-	$query_table_assignments = sprintf("SELECT assignTable,assignRoles,assignFlight,assignRound FROM %s WHERE bid='%s' AND assignment='%s'",$prefix."judging_assignments",$uid,$method);
+	$query_table_assignments = sprintf("SELECT assignTable,assignRoles,assignFlight,assignRound FROM %s WHERE bid='%s' AND assignment='%s' ORDER BY assignTable ASC",$prefix."judging_assignments",$uid,$method);
 	$table_assignments = mysqli_query($connection,$query_table_assignments) or die (mysqli_error($connection));
 	$row_table_assignments = mysqli_fetch_assoc($table_assignments);
 	$totalRows_table_assignments = mysqli_num_rows($table_assignments);
@@ -3165,7 +3186,7 @@ function table_assignments($uid,$method,$time_zone,$date_format,$time_format,$me
 
 				elseif ($method2 == 1) {
 					if ((isset($table_info[0])) && (isset($table_info[1])) && (isset($table_info[3]))) {
-						if ($method == "J") $output .= "<a href='".$base_url."index.php?section=admin&amp;action=assign&amp;go=judging_tables&amp;filter=judges&id=".$table_info[3]."' data-toggle=\"tooltip\" title='Assign/Unassign Judges to Table ".$table_info[0]." - ".$table_info[1]."'>".$table_info[0]." - ".$table_info[1]."</a>,&nbsp;";
+						if ($method == "J") $output .= $table_info[0]." - <a href='".$base_url."index.php?section=admin&amp;action=assign&amp;go=judging_tables&amp;filter=judges&id=".$table_info[3]."' data-toggle=\"tooltip\" title='Assign/Unassign Judges to Table ".$table_info[0]." - ".$table_info[1]."'>".$table_info[1]."</a>,&nbsp;";
 						if ($method == "S") $output .= "<a href='".$base_url."index.php?section=admin&amp;action=assign&amp;go=judging_tables&amp;filter=stewards&id=".$table_info[3]."' data-toggle=\"tooltip\" title='Assign/Unassign Stewards to Table ".$table_info[0]." - ".$table_info[1]."'>".$table_info[0]." - ".$table_info[1]."</a>,&nbsp;";
 					}
 				}
@@ -3173,6 +3194,25 @@ function table_assignments($uid,$method,$time_zone,$date_format,$time_format,$me
 				elseif ($method2 == 2) {
 					if (isset($table_info[3])) $output[] = $table_info[3];
 					else $output[] = "";
+				}
+
+				elseif ($method2 == 3) {
+					$output .= "\t\t<tr>\n";
+					$output .= "\t\t\t<td>".$location[2];
+					if (!empty($location[3]) && ($location[4] == "1")) $output .= "<br><em><small>".$location[3]."</small></em>";
+					$output .= "\t\t\t</td>";
+					$output .= "\t\t\t<td>";
+					$output .= getTimeZoneDateTime($time_zone, $location[0], $date_format,  $time_format, "short", "date-time");
+					if (!empty($location[1])) $output .= " - ".getTimeZoneDateTime($time_zone, $location[1], $date_format,  $time_format, "short", "date-time");
+					$output .= "</td>\n";
+					$output .= "\t\t\t<td>";
+					$output .= sprintf("<a href=\"#table%s\">%s %s - %s</a>",$table_info[3],$label_table,$table_info[0],$table_info[1]);
+					if ($_SESSION['jPrefsQueued'] == "N") {
+						$output .= "<br>".$label_round." ".$row_table_assignments['assignFlight'].", ".$label_flight." ".$row_table_assignments['assignFlight'];
+					}
+					if (!empty($row_table_assignments['assignRoles'])) $output .= "<br>".$role;
+					$output .= "</td>\n";
+					$output .= "\t\t</tr>\n";
 				}
 
 				else {
@@ -3645,15 +3685,19 @@ function judging_location_info($id) {
 	$row_judging_loc3 = mysqli_fetch_assoc($judging_loc3);
 	$totalRows_judging_loc3 = mysqli_num_rows($judging_loc3);
 
-	$return = "";
+	$return = array();
+	
 	if ($totalRows_judging_loc3 > 0) {
-		$return .= $totalRows_judging_loc3."^"; // 0
-		$return .= $row_judging_loc3['judgingLocName']."^"; // 1
-		$return .= $row_judging_loc3['judgingDate']."^"; // 2
-		$return .= $row_judging_loc3['judgingLocation']."^"; // 3
-		$return .= $row_judging_loc3['judgingDateEnd']."^"; // 4
-		$return .= $row_judging_loc3['judgingLocType']; // 5
+		
+		$return[0] = $totalRows_judging_loc3;
+		$return[1] = $row_judging_loc3['judgingLocName'];
+		$return[2] = $row_judging_loc3['judgingDate'];
+		$return[3] = $row_judging_loc3['judgingLocation'];
+		$return[4] = $row_judging_loc3['judgingDateEnd'];
+		$return[5] = $row_judging_loc3['judgingLocType'];
+
 	}
+
 	return $return;
 
 }
@@ -4543,6 +4587,10 @@ function eval_exits($eid="default",$method="default",$dbTable) {
 
 // See https://core.trac.wordpress.org/browser/tags/4.1/src/wp-includes/formatting.php
 function remove_accents($string) {
+
+	// Converts all accent characters to ASCII characters.
+	// If there are no accent characters, then the string given is just returned.
+
     if (!preg_match('/[\x80-\xff]/', $string)) return $string;
 
     $chars = array(
@@ -5173,5 +5221,48 @@ function scrub_filename($filename) {
 	$scrub_characters = array("&" => "", "?" => "", "=" => "", "%" => "", "\"" => "", "'" => "", "$" => "", "*" => "");
 	$filename = strtr($filename, $scrub_characters);
 	return $filename;
+}
+
+function clean_filename($filename) {
+
+	// Get the file extension
+	$file_extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+	// Get the file name without the extension 
+	$file_name = pathinfo($filename, PATHINFO_FILENAME); 
+
+	// Call function in common.lib.php to convert accented characters to ASCII
+	$file_name = remove_accents($file_name);
+
+	// Call function in common.lib.php to remove characters like &, $, etc.
+	$file_name = scrub_filename($file_name);
+
+	// Replace spaces with dashes
+	$file_name = str_replace(' ', '-', $file_name);
+
+	// Replace underscores with dashes
+	$file_name = str_replace('_', '-', $file_name);
+
+	// Remove any remaining special characters
+	$file_name = preg_replace('/[^A-Za-z0-9\-\_]/', '', $file_name); 
+
+	// Strip any html or php tags
+	$file_name = strip_tags($file_name);
+
+	// Strip any slashes
+	$file_name = stripcslashes($file_name);
+	$file_name = stripslashes($file_name);
+
+	// Failsafe in case the remove_accents function missed something
+	$file_name = filter_var($file_name, FILTER_UNSAFE_RAW, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_ENCODE_HIGH);
+
+	// Replace two or more dashes together with a single dash
+	$file_name = preg_replace('/-+/', '-', $file_name); 
+
+	// Add extension back
+	$cleaned_file = $file_name.".".$file_extension;
+
+	return $cleaned_file;
+
 }
 ?>

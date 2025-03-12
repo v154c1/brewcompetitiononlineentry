@@ -64,7 +64,7 @@ if ($setup_success) {
 	if (SINGLE) require_once(SSO.'sso.inc.php');
 	require_once (LIB.'common.lib.php');
 	require_once (INCLUDES.'db_tables.inc.php');
-	if ($force_update) include (UPDATE.'off_schedule_update.php');
+	if ($force_update) include (UPDATE.'run_update.php');
 	require_once (LIB.'help.lib.php');
 	require_once (INCLUDES.'styles.inc.php'); // Establishing session vars depends upon arrays here
 	require_once (DB.'common.db.php');
@@ -328,7 +328,7 @@ if ($setup_success) {
 
 		}
 
-		if ($row_contest_info_check['id'] != "1") {
+		if (($row_contest_info_check) && ($row_contest_info_check['id'] != "1")) {
 
 			$update_table = $prefix."contest_info";
 			$data = array('id' => 1);
@@ -376,6 +376,7 @@ if ($setup_success) {
 	if (HOSTED) $css_url = "https://brewingcompetitions.com/_bcoem_shared/css/";
 
 	$js_app_url = $js_url."app.min.js";
+	$js_eval_url = $js_url."eval_checks.min.js";
 	$css_common_url = $css_url."common.min.css";
 
 	if (!isset($_SESSION['prefsTheme'])) $theme = $css_url."default.min.css";
@@ -388,9 +389,11 @@ if ($setup_success) {
 	    
 	    if (strpos($base_url, 'test.brewingcompetitions.com') !== false) {
 	        $js_app_url = $base_url."js_source/app.js";
+	        $js_eval_url = $base_url."js_source/eval_checks.js";
 	    }
 	    
 	    $js_app_url .= "?t=".time();
+	    $js_eval_url .= "?t=".time();
 	    
 	}
 
