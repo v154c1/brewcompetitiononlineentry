@@ -177,7 +177,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
     $style = $row_ssql['brewStyle'];
     $id_prefix = '';
-    $pattern = "/(?<=\s|^)[A-Z](?=\s|-|$)/";
+    $pattern = "/(?<=\s|^)[A-Z](?=\s|-|\)|$)/";
 
     if (preg_match($pattern, $style, $matches)) {
         $id_prefix = $matches[0];
