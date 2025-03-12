@@ -56,8 +56,16 @@ if (($table_card_output) && ($psort == "sorting-placards")) {
                     else $display_entries = $label_entries;
 
                     $table_card_output_print .= "<div class=\"table_card\">";
-                    $table_card_output_print .= "<h1>".$cat_number." - ".$value."</h1>";
-                    $table_card_output_print .= "<h1><small>".$row_style_count_logged['count']." ".$display_entries."</small></h1>";
+                    $table_card_output_print .= "<h1 style=\"margin-bottom: 0px;\">".$cat_number." - ".$value."</h1>";
+                    $table_card_output_print .= "<h2><small>".$row_style_count_logged['count']." ".$display_entries."</small></h2>";
+                    $table_card_output_print .= "<ul class=\"list-unstyled\">";
+                    do {
+                        $table_card_output_print .= "<li>";
+                        $table_card_output_print .= "&#x2610; ".$label_entry." # ".sprintf("%06s",$row_style_count_logged['id'])." &ndash; ";
+                        $table_card_output_print .= $row_style_count_logged['brewCategorySort'].$row_style_count_logged['brewSubCategory'];
+                        $table_card_output_print .= "</li>";
+                    } while ($row_style_count_logged = mysqli_fetch_assoc($style_count_logged));
+                    $table_card_output_print .= "</ul>";
                     $table_card_output_print .= "</div>";
                     $table_card_output_print .= "<div style=\"page-break-after:always;\"></div>";
 
@@ -99,6 +107,7 @@ if (($table_card_output) && ($psort == "sorting-tables")) {
         $a = array(get_table_info("1","list",$row_tables['id'],$dbTable,"default"));
         $styles = display_array_content($a,1);
         $received = get_table_info("1","count_total",$row_tables['id'],$dbTable,"default");
+        $table_location = table_location($row_tables['id'],$_SESSION['prefsDateFormat'],$_SESSION['prefsTimeZone'],$_SESSION['prefsTimeFormat'],"default");
 
         if ($view == "master-list") {
             
@@ -106,7 +115,7 @@ if (($table_card_output) && ($psort == "sorting-tables")) {
             $table_card_output_print .= "<td>".sprintf("%s: %s", $row_tables['tableNumber'],$row_tables['tableName'])."</td>";
             $table_card_output_print .= "<td style=\"overflow-wrap: break-word;\">".rtrim($styles, ",&nbsp;")."</td>";
             $table_card_output_print .= "<td>".$received."</td>";
-            $table_card_output_print .= "<td>".table_location($row_tables['id'],$_SESSION['prefsDateFormat'],$_SESSION['prefsTimeZone'],$_SESSION['prefsTimeFormat'],"default")."</td>";
+            $table_card_output_print .= "<td>".$table_location."</td>";
             $table_card_output_print .= "</tr>";
 
         }
