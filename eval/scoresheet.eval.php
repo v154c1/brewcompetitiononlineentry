@@ -755,7 +755,7 @@ $(document).ready(function() {
       $("#score-aroma-status").html("");
     }
 
-    if ($(this).val() > 0) {
+    if ($(this).val() >= 0) {
       $('#score-icon-aroma-status').attr('class', 'fa fa-check-circle text-success');
       $("#score-icon-aroma").fadeIn('fast');
       $("#score-aroma-status").html($(this).val());
@@ -771,7 +771,7 @@ $(document).ready(function() {
       $("#score-appearance-status").html("");
     }
 
-    if ($(this).val() > 0) {
+    if ($(this).val() >= 0) {
       $('#score-icon-appearance-status').attr('class', 'fa fa-check-circle text-success');
       $("#score-icon-appearance").fadeIn('fast');
       $("#score-appearance-status").html($(this).val());
@@ -787,7 +787,7 @@ $(document).ready(function() {
       $("#score-flavor-status").html("");
     }
 
-    if ($(this).val() > 0) {
+    if ($(this).val() >= 0) {
       $('#score-icon-flavor-status').attr('class', 'fa fa-check-circle text-success');
       $("#score-icon-flavor").fadeIn('fast');
       $("#score-flavor-status").html($(this).val());
@@ -803,7 +803,7 @@ $(document).ready(function() {
       $("#score-mouthfeel-status").html("");
     }
 
-    if ($(this).val() > 0) {
+    if ($(this).val() >= 0) {
       $('#score-icon-mouthfeel-status').attr('class', 'fa fa-check-circle text-success');
       $("#score-icon-mouthfeel").fadeIn('fast');
       $("#score-mouthfeel-status").html($(this).val());
@@ -819,7 +819,7 @@ $(document).ready(function() {
       $("#score-overall-status").html("");
     }
 
-    if ($(this).val() > 0) {
+    if ($(this).val() >= 0) {
       $('#score-icon-overall-status').attr('class', 'fa fa-check-circle text-success');
       $("#score-icon-overall").fadeIn('fast');
       $("#score-overall-status").html($(this).val());

@@ -33,7 +33,7 @@ $overall_points = 10;
             return;
         }
         const q = `input[name="${inp}"]`;
-        $(q).val(val);
+        $(q).val(val).trigger('change');
         // // console.log(q, $(q).val());
         score_button_classes();
     }
@@ -107,6 +107,7 @@ function score_input($points, $input_name, $label, $initial_value, $notes, $hint
             </div>
             <div class="col-md-9 col-sm-12 col-xs-12 container">
                 <input type="number" min="0" max="<?php echo $points ?>" name="<?php echo $input_name; ?>"
+                       id="<?php echo $input_name; ?>"
                        value="<?php echo $initial_value; ?>" class="form-control score-choose row" placeholder="" required
                        onblur="score_button_classes()">
                 <div class="btn-group row score-button-group" role="group">
