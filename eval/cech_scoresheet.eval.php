@@ -132,11 +132,9 @@ function score_input($points, $input_name, $label, $initial_value, $notes, $hint
 
 <?php
 
-score_input($appearance_points, "evalAppearanceScore", "Vzhled", $row_eval['evalAppearanceScore'], "barva, pěna, čirost, trvanlivost, struktura, jiné", "0 = nepěkné, 3 = velice hezké");
-
 score_input($aroma_points, "evalAromaScore", "Aroma / vůně", $row_eval['evalAromaScore'], "slad, chmel, kvašení, jiné", "0 = puch, 12 = čistá, příjemná, ve stylu");
 
-
+score_input($appearance_points, "evalAppearanceScore", "Vzhled", $row_eval['evalAppearanceScore'], "barva, pěna, čirost, trvanlivost, struktura, jiné", "0 = nepěkné, 3 = velice hezké");
 
 score_input($flavor_points, "evalFlavorScore", "Chuť", $row_eval['evalFlavorScore'], "slad, chmel, hořkost, kvašení, vyváženost, dochuť, jiné", "0 = odporné, 20 = vynikající");
 
