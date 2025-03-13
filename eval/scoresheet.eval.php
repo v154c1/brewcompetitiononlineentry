@@ -586,6 +586,11 @@ if ($entry_found) {
 
   }
 
+    if ($_SESSION['jPrefsScoresheet'] == 37 || $_SESSION['jPrefsScoresheet'] == 38) {
+        $sticky_score_tally .= "<div class=\"row small\">";
+        $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-diploma-status\" class=\"fa fa-trophy\" ></i><span id=\"score-diploma-status\"></span></div>";
+        $sticky_score_tally .= "</div>";
+    }
   // Elapsed time
   $sticky_score_tally .= "<p style=\"margin-top: 15px; margin-bottom: 0; padding-bottom: 10px;\"><span id=\"elapsed-time-p\"><i class=\"fa fa-clock\"></i> <strong>".$label_elapsed_time.": <span id=\"elapsed-time\"></span></strong></span><br><small id=\"session-end-eval-p\">".$label_auto_log_out." <span id=\"session-end-eval\"></span></small>";
   $sticky_score_tally .= "</p>";
@@ -695,6 +700,35 @@ var score_range_ok_output = "<span class=\"text-success\"><strong>" + score_rang
 </script>
 <script src="<?php echo $js_eval_url; ?>"></script>
 <script>
+    function diplomaText(num) {
+        if (num === undefined || isNaN(num)) {
+            return ""
+        }
+        if (num >= 45) {
+            return 'Zlatý diplom';
+        } else if (num > 40) {
+            return 'Stříbrný diplom';
+        } else if (num > 35) {
+            return 'Bronzový diplom';
+        } else {
+            return 'Žádný diplom';
+        }
+    }
+    function diplomaColor(num) {
+        if (num === undefined || isNaN(num)) {
+            return '';
+        }
+        if (num >= 45) {
+            return 'text-gold';
+        } else if (num > 40) {
+            return 'text-silver';
+        } else if (num > 35) {
+            return 'text-bronze';
+        } else {
+            return '';
+        }
+    }
+
 $(document).ready(function() {
 
   $("#courtesy-alert-warning-15").hide();
@@ -837,6 +871,10 @@ $(document).ready(function() {
       $('#score-icon-consensus-status').attr('class', 'fa fa-times-circle text-danger');
       $("#score-consensus-status").html("");
     }
+
+    const num = parseInt($(this).val());
+    $("#score-diploma-status").html(diplomaText(num));
+    $('#score-icon-diploma-status').attr('class', 'fa fa-trophy '+diplomaColor(num));
 
   });
 
@@ -1158,6 +1196,9 @@ if (edit) {
   $("#score-overall-status").html("<?php if (isset($row_eval['evalOverallScore'])) echo $row_eval['evalOverallScore']; ?>");
   $('#score-icon-consensus-status').attr('class', 'fa fa-check-circle text-success');
   $("#score-consensus-status").html("<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>");
+  $("#score-diploma-status").html(diplomaText(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
+  $("#score-icon-diploma-status").attr('class', 'fa fa-trophy '+diplomaColor(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
+
 }
 
 </script>
