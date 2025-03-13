@@ -122,13 +122,15 @@ if ($totalRows_ssql > 0) {
             ?>
             <table class="table">
             <?php
-            echo "<tr><th scope=\"col\">$label_brewer</th><th scope=\"col\">$label_cobrewer</th><th scope=\"col\">$label_entry</th><th scope=\"col\">$label_style</th><th scope=\"col\">$label_score</th></tr>\n";
+            echo "<tr><th scope=\"col\">Diplomy</th><th scope=\"col\">$label_brewer</th><th scope=\"col\">$label_cobrewer</th><th scope=\"col\">$label_entry</th><th scope=\"col\">$label_style</th><th scope=\"col\">$label_score</th></tr>\n";
 
             do {
                 $score = '';
                 $diplomClass = '';
 
                 $scoreEntry = $row_sql['scoreEntry'];
+                $scorePlace = $row_sql['scorePlace'];
+                $brewId = $row_sql['eid'];
                 if ($scoreEntry) {
                     $score = $scoreEntry * 2;
                     if ($score >= 90) {
@@ -139,9 +141,18 @@ if ($totalRows_ssql > 0) {
                         $diplomClass = "bronzeDiplom";
                     }
                 }
-
+echo "<!--";
+                print_r($row_sql);
+                echo "-->";
 //        print_r($row_sql);
-                echo "<tr class='$diplomClass' scope=\"row\"'><td>" . $row_sql['brewBrewerFirstName'] . " " . $row_sql['brewBrewerLastName'] . "</td><td>" . $row_sql['brewCoBrewer'] . "</td><td>" . $row_sql['brewName'] . "</td><td>" . $row_sql['brewStyle'] . "</td><td>" . $score . "</td></tr>\n";
+                echo "<tr class='$diplomClass' scope=\"row\"'>";
+                if ($scoreEntry > 35 || $scorePlace) {
+                    echo "<th><a href=\"print-diploma.php?entry=$brewId\">Diplom</a></th>";
+                } else {
+                    echo  "<td>$scorePlace</td>";
+                }
+
+                echo "<td>" . $row_sql['brewBrewerFirstName'] . " " . $row_sql['brewBrewerLastName'] . "</td><td>" . $row_sql['brewCoBrewer'] . "</td><td>" . $row_sql['brewName'] . "</td><td>" . $row_sql['brewStyle'] . "</td><td>" . $score . "</td></tr>\n";
 //        echo "<br><br>";
 
             } while ($row_sql = mysqli_fetch_assoc($sql));
