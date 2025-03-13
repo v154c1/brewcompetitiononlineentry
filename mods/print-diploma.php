@@ -62,6 +62,18 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             background-color: #bfa396;
         }
 
+
+        .diplom-gold {
+            color: #D4AF37 !important;
+        }
+
+        .diplom-silver {
+            color: #C0C0C0 !important;
+        }
+
+        .diplom-bronze {
+            color: #CD7F32 !important;
+        }
         @page {
             size: A4 portrait;
             margin: 0;
@@ -226,6 +238,30 @@ $shortStyles = array(
 $styleShort = $shortStyles[$styleId];
 
 
+$diplomClass = '';
+if ($score) {
+    if ($score >= 45) {
+        $diplomClass = "diplom-gold";
+    } else if ($score > 40) {
+        $diplomClass = "diplom-silver";
+    } else if ($score > 35) {
+        $diplomClass = "diplom-bronze";
+    }
+}
+
+$diplomLevel = 'Prázdný škopek';
+if ($score) {
+    if ($score >= 45) {
+        $diplomLevel = 'Zlaté kostelecké škopek';
+    } else if ($score > 40) {
+        $diplomLevel = 'Stříbrné kostelecké škopek';
+    } else if ($score > 35) {
+        $diplomLevel = 'Bronzové kostelecké škopek';
+    }
+}
+
+
+
 //print_r($entry);
 ?>
 
@@ -233,10 +269,22 @@ $styleShort = $shortStyles[$styleId];
     <img src="../images/diploma.png">
     <div class="text">
         <div class="intro">
-        <span class="place">
+            <?php
+            if ($place) {
+                ?>
+
+                <span class="place">
         <?php echo $place; ?>.
         </span>&nbsp;místo v kategorii <?php echo $styleId; ?><br>
-            <?php echo $styleShort; ?>
+                <?php echo $styleShort; ?>
+
+                <?php
+            } else {
+                ?>
+                <span class="<?php echo $diplomClass; ?>"><?php echo $diplomLevel; ?></span><br>
+                za <span class="place"><?php echo $score * 2; ?></span> bodů v kategorii<br>
+                <?php echo $styleShort; ?>
+            <?php } ?>
         </div>
 
         <div class="recipient">
