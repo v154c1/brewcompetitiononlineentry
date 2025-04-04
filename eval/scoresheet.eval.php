@@ -563,12 +563,23 @@ if ($entry_found) {
   if (!$nw_cider) {
 
     $sticky_score_tally .= "<p style=\"margin-bottom: 0; padding-bottom: 5px;\"><i class=\"fa fa-info-circle\"></i> <strong>".$label_status." &ndash; ".$label_admin_scores."</strong></p>";
-    $sticky_score_tally .= "<div class=\"row small\">";
-    $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-aroma-status\" class=\"fa text-danger fa-times-circle\"></i> ".truncate($label_aroma,"10","")."</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-aroma-status\"></span></div>";
-    $sticky_score_tally .= "</div>";
-    $sticky_score_tally .= "<div class=\"row small\">";
-    $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-appearance-status\" class=\"fa text-danger fa-times-circle\"></i> ".truncate($label_appearance,"10","")."</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-appearance-status\"></span></div>";
-    $sticky_score_tally .= "</div>";
+      if ($judging_scoresheet != 37) {
+          $sticky_score_tally .= "<div class=\"row small\">";
+          $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-aroma-status\" class=\"fa text-danger fa-times-circle\"></i> " . truncate($label_aroma, "10", "") . "</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-aroma-status\"></span></div>";
+          $sticky_score_tally .= "</div>";
+          $sticky_score_tally .= "<div class=\"row small\">";
+          $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-appearance-status\" class=\"fa text-danger fa-times-circle\"></i> " . truncate($label_appearance, "10", "") . "</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-appearance-status\"></span></div>";
+          $sticky_score_tally .= "</div>";
+      } else {
+
+          $sticky_score_tally .= "<div class=\"row small\">";
+          $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-appearance-status\" class=\"fa text-danger fa-times-circle\"></i> " . truncate($label_appearance, "10", "") . "</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-appearance-status\"></span></div>";
+          $sticky_score_tally .= "</div>";
+          $sticky_score_tally .= "<div class=\"row small\">";
+          $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-aroma-status\" class=\"fa text-danger fa-times-circle\"></i> " . truncate("Aroma", "10", "") . "</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-aroma-status\"></span></div>";
+          $sticky_score_tally .= "</div>";
+
+      }
     $sticky_score_tally .= "<div class=\"row small\">";
     $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-flavor-status\" class=\"fa text-danger fa-times-circle\"></i> ".truncate($label_flavor,"10","")."</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-flavor-status\"></span></div>";
     $sticky_score_tally .= "</div>";
@@ -580,13 +591,19 @@ if ($entry_found) {
     $sticky_score_tally .= "<div class=\"row small\">";
     $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-overall-status\" class=\"fa text-danger fa-times-circle\"></i> ".truncate($label_overall_impression,"10","")."</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-overall-status\"></span></div>";
     $sticky_score_tally .= "</div>";
+  if ($judging_scoresheet == 37) {
+      $sticky_score_tally .= "<div class=\"row small\">";
+      $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-style-status\" class=\"fa text-danger fa-times-circle\"></i> Styl</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-style-status\"></span></div>";
+      $sticky_score_tally .= "</div>";
+
+  }
     $sticky_score_tally .= "<div class=\"row small\">";
     $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-consensus-status\" class=\"fa text-danger fa-times-circle\"></i> ".truncate($label_assigned_score,"10","")."</div><div class=\"col col-xs-2 pull-right\"><span id=\"score-consensus-status\"></span></div>";
     $sticky_score_tally .= "</div>";
 
   }
 
-    if ($_SESSION['jPrefsScoresheet'] == 37 || $_SESSION['jPrefsScoresheet'] == 38) {
+    if ($judging_scoresheet == 37 || $judging_scoresheet == 38) {
         $sticky_score_tally .= "<div class=\"row small\">";
         $sticky_score_tally .= "<div class=\"col col-xs-10\"><i id=\"score-icon-diploma-status\" class=\"fa fa-trophy\" ></i><span id=\"score-diploma-status\"></span></div>";
         $sticky_score_tally .= "</div>";
@@ -860,7 +877,19 @@ $(document).ready(function() {
     }
 
   });
+  $("#evalStyleAccuracy").change( function () {
+      if ($(this).val() == "") {
+          $('#score-icon-style-status').attr('class', 'fa fa-times-circle text-danger');
+          $("#score-icon-style").fadeOut('fast');
+          $("#score-style-status").html("");
+      }
 
+      if ($(this).val() >= 0) {
+          $('#score-icon-style-status').attr('class', 'fa fa-check-circle text-success');
+          $("#score-icon-style").fadeIn('fast');
+          $("#score-style-status").html($(this).val());
+      }
+  });
   $('#evalFinalScore').on('change input keyup keydown click onmouseout oninput', function() {
 
     var currentLength = $(this).val().length;
@@ -1192,13 +1221,35 @@ if (edit) {
   $("#score-flavor-status").html("<?php if (isset($row_eval['evalFlavorScore'])) echo $row_eval['evalFlavorScore']; ?>");
   $('#score-icon-mouthfeel-status').attr('class', 'fa fa-check-circle text-success');
   $("#score-mouthfeel-status").html("<?php if (isset($row_eval['evalMouthfeelScore'])) echo $row_eval['evalMouthfeelScore']; ?>");
-  $('#score-icon-overall-status').attr('class', 'fa fa-check-circle text-success');
-  $("#score-overall-status").html("<?php if (isset($row_eval['evalOverallScore'])) echo $row_eval['evalOverallScore']; ?>");
+
+    <?php
+    if ($judging_scoresheet == 37) {
+
+        $overal =  $row_eval['evalOverallScore'] - $row_eval['evalStyleAccuracy'];
+        ?>
+        $('#score-icon-overall-status').attr('class', 'fa fa-check-circle text-success');
+        $("#score-overall-status").html("<?php echo $overal; ?>");
+        $('#score-icon-style-status').attr('class', 'fa fa-check-circle text-success');
+        $("#score-style-status").html("<?php if (isset($row_eval['evalStyleAccuracy'])) echo $row_eval['evalStyleAccuracy']; ?>");
+<?php
+    } else {
+        ?>
+        $('#score-icon-overall-status').attr('class', 'fa fa-check-circle text-success');
+        $("#score-overall-status").html("<?php if (isset($row_eval['evalOverallScore'])) echo $row_eval['evalOverallScore']; ?>");
+        <?php
+    }
+    ?>
   $('#score-icon-consensus-status').attr('class', 'fa fa-check-circle text-success');
   $("#score-consensus-status").html("<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>");
-  $("#score-diploma-status").html(diplomaText(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
-  $("#score-icon-diploma-status").attr('class', 'fa fa-trophy '+diplomaColor(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
+<?php
+    if ($judging_scoresheet == 37 || $judging_scoresheet == 38) {
+        ?>
 
+        $("#score-diploma-status").html(diplomaText(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
+        $("#score-icon-diploma-status").attr('class', 'fa fa-trophy ' + diplomaColor(<?php if (isset($row_eval['evalFinalScore'])) echo $row_eval['evalFinalScore']; ?>));
+        <?php
+    }
+    ?>
 }
 
 </script>
