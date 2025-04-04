@@ -61,9 +61,9 @@ function get_entries($style)
     $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
     $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
     $db->where('brewStyle', $style);
-    $db->where('scoreEntry > 35');
+    $db->where('scoreEntry > 35 or scorePlace is not null');
     $db->orderBy("score.scoreEntry", "desc");
-    return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs");
+    return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs, score.scorePlace");
 }
 
 function get_style_id($styleName)
