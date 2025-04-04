@@ -131,7 +131,7 @@ function get_entries($styleID, $judgeID)
     $db->orderBy("eval.evalFinalScore", "desc");
     $db->where('eval.evalStyle', $styleID);
     $db->where('eval.evalJudgeInfo', $judgeID);
-    return $db->get("$evalTable eval", null, "eval.eid as eid, eval.evalFinalScore");
+    return $db->get("$evalTable eval", null, "eval.eid as eid, eval.evalFinalScore, eval.evalAromaScore, eval.evalAppearanceScore, eval.evalFlavorScore,eval.evalMouthfeelScore,eval.evalOverallScore");
 
 }
 
@@ -176,7 +176,15 @@ if (count($styles) > 0) {
                         ?>
                         <tr role="row">
                             <td><?php echo $row_esql['eid']; ?></td>
-                            <td><?php echo $row_esql['evalFinalScore']; ?></td>
+                            <td><?php
+                            $finalScore = $row_esql['evalFinalScore'];
+                            echo $finalScore;
+
+                            $score_sum = $row_esql['evalAromaScore'] + $row_esql['evalAppearanceScore'] + $row_esql['evalFlavorScore'] + $row_esql['evalMouthfeelScore'] + $row_esql['evalOverallScore'];
+                            if ($score_sum != $finalScore) {
+                                echo '<span style="color:red;font-weight: bold"> (' . $score_sum . ')</span>';
+                            }
+                            ?></td>
                         </tr>
 
                         <?php
