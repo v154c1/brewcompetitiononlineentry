@@ -25,7 +25,6 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     if (CDN) include(INCLUDES . 'load_cdn_libraries.inc.php');
     else include(INCLUDES . 'load_local_libraries.inc.php');
     ?>
-    <!-- Load BCOE&M Custom CSS - Contains Bootstrap overrides and custom classes common to all BCOE&M themes -->
     <link rel="stylesheet" type="text/css" href="<?php echo $css_url . "common.min.css"; ?>"/>
     <link rel="stylesheet" type="text/css" href="<?php echo $theme; ?>"/>
 
@@ -36,10 +35,8 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         var setup = 0;
     </script>
 
-    <!-- Load BCOE&M Custom JS -->
     <script src="<?php echo $js_url; ?>bcoem_custom.min.js"></script>
 
-    <!-- Open Graph Implementation -->
     <?php if (!empty($_SESSION['contestName'])) { ?>
         <meta property="og:title" content="<?php echo $_SESSION['contestName'] ?>"/>
     <?php } ?>
@@ -49,53 +46,54 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
     <meta property="og:url"
           content="<?php echo "http" . ((!empty($_SERVER['HTTPS'])) ? "s://" : "://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>"/>
     <style>
-        .goldenDiplom {
-            background-color: gold;
-        }
-
-        .silverDiplom {
-            background-color: silver;
-
-        }
-
-        .bronzeDiplom {
-            background-color: saddlebrown;
-        }
+        .goldenDiplom { background-color: gold; }
+        .silverDiplom { background-color: silver; }
+        .bronzeDiplom { background-color: saddlebrown; }
     </style>
 </head>
 <body>
 <?php
 if (!$admin_role) {
     die('not an admin!');
-
 }
-$stylesTable = $prefix . "styles";
-$brewingTable = $prefix . "brewing";
-$scoresTable = $prefix . "judging_scores";
-$evalTable = $prefix . "evaluation";
-$tablesTable = $prefix . "judging_tables";
-$assignTable = $prefix . "judging_assignments";
+
+$stylesTable   = $prefix . "styles";
+$brewingTable  = $prefix . "brewing";
+$scoresTable   = $prefix . "judging_scores";
+$evalTable     = $prefix . "evaluation";
+$tablesTable   = $prefix . "judging_tables";
+$assignTable   = $prefix . "judging_assignments";
 $brewersTables = $prefix . "brewer";
 
 function get_tables()
 {
-    global $tablesTable;
-    global $stylesTable;
-    global $connection;
-
+    global $tablesTable, $connection;
     $db = new MysqliDb($connection);
-    $db->join("$stylesTable styles", "styles.id=tables.tableStyles", "LEFT");
-    $db->orderBy('styles.brewStyle', 'asc');
-    return $db->get("$tablesTable tables", null, "tables.id as tableId, tableName, styles.brewStyle, styles.id as styleId, styles.brewStyleGroup, styles.brewStyleNum");
-
+    $db->orderBy('tableName', 'asc');
+    return $db->get($tablesTable, null, "id as tableId, tableName, tableStyles");
 }
 
-function get_empty_entries($styleCategory, $styleSubCategory)
+function parse_style_ids($tableStyles)
 {
-    global $brewingTable;
-    global $connection;
-    global $evalTable;
+    if (empty($tableStyles)) return [];
+    return array_values(array_filter(array_map('intval', explode(',', $tableStyles))));
+}
 
+function get_styles_info($styleIds)
+{
+    global $stylesTable, $connection;
+    if (empty($styleIds)) return [];
+    $db = new MysqliDb($connection);
+    $db->where('id', $styleIds, 'IN');
+    $db->orderBy('brewStyleGroup', 'asc');
+    $db->orderBy('brewStyleNum', 'asc');
+    return $db->get($stylesTable, null, "id, brewStyle, brewStyleGroup, brewStyleNum");
+}
+
+// Returns entries with no evaluation for a single style (by category/subcategory pair)
+function get_empty_entries_for_style($styleCategory, $styleSubCategory)
+{
+    global $brewingTable, $evalTable, $connection;
     $db = new MysqliDb($connection);
     $db->where('brewCategory', $styleCategory);
     $db->where('brewSubCategory', $styleSubCategory);
@@ -105,93 +103,104 @@ function get_empty_entries($styleCategory, $styleSubCategory)
     $db->where('eval.id', null, 'IS');
     $db->orderBy("brewing.id", "asc");
     return $db->get("$brewingTable brewing", null, "brewing.id as bid");
-
 }
 
-function get_judges($styleID)
+// Aggregate empty entries across all styles in a table
+function get_empty_entries($styles)
 {
-    global $evalTable;
-    global $brewersTables;
-    global $connection;
+    $result = [];
+    foreach ($styles as $style) {
+        $rows = get_empty_entries_for_style($style['brewStyleGroup'], $style['brewStyleNum']);
+        $result = array_merge($result, $rows);
+    }
+    // De-duplicate by entry ID in case an entry somehow matches multiple styles
+    $seen = [];
+    $deduped = [];
+    foreach ($result as $row) {
+        if (!isset($seen[$row['bid']])) {
+            $seen[$row['bid']] = true;
+            $deduped[] = $row;
+        }
+    }
+    usort($deduped, fn($a, $b) => $a['bid'] - $b['bid']);
+    return $deduped;
+}
 
+// Returns distinct judges who evaluated any entry in the given style IDs
+function get_judges($styleIds)
+{
+    global $evalTable, $brewersTables, $connection;
+    if (empty($styleIds)) return [];
     $db = new MysqliDb($connection);
     $db->join("$brewersTables brewers", "brewers.id=eval.evalJudgeInfo", "LEFT");
-    $db->where('eval.evalStyle', $styleID);
+    $db->where('eval.evalStyle', $styleIds, 'IN');
     $db->orderBy('brewers.brewerLastName', 'asc');
     return $db->get("$evalTable eval", null, "DISTINCT eval.evalJudgeInfo as jid, brewers.brewerFirstName, brewers.brewerLastName");
-
 }
 
-function get_entries($styleID, $judgeID)
+// Returns all entries scored by a given judge across the given style IDs
+function get_entries($styleIds, $judgeID)
 {
-    global $evalTable;
-    global $connection;
-
+    global $evalTable, $connection;
+    if (empty($styleIds)) return [];
     $db = new MysqliDb($connection);
-    $db->orderBy("eval.evalFinalScore", "desc");
-    $db->where('eval.evalStyle', $styleID);
+    $db->where('eval.evalStyle', $styleIds, 'IN');
     $db->where('eval.evalJudgeInfo', $judgeID);
-    return $db->get("$evalTable eval", null, "eval.eid as eid, eval.evalFinalScore, eval.evalAromaScore, eval.evalAppearanceScore, eval.evalFlavorScore,eval.evalMouthfeelScore,eval.evalOverallScore");
-
+    $db->orderBy("eval.evalFinalScore", "desc");
+    return $db->get("$evalTable eval", null, "eval.eid as eid, eval.evalFinalScore, eval.evalAromaScore, eval.evalAppearanceScore, eval.evalFlavorScore, eval.evalMouthfeelScore, eval.evalOverallScore");
 }
 
 
-$styles = get_tables();
+$tables = get_tables();
 
-if (count($styles) > 0) {
-    foreach ($styles as $row_ssql) {
+foreach ($tables as $table) {
+    $styleIds = parse_style_ids($table['tableStyles']);
+    $styles   = get_styles_info($styleIds);
 
-        $style = $row_ssql['brewStyle'];
-        $tableId = $row_ssql['tableId'];
-        $styleCategory = $row_ssql['brewStyleGroup'];
-        $styleSubCategory = $row_ssql['brewStyleNum'];
+    $style_names = implode(', ', array_map(function ($s) {
+        return $s['brewStyleGroup'] . $s['brewStyleNum'] . ' ' . $s['brewStyle'];
+    }, $styles));
 
-        echo "<h1>$style</h1>";
+    echo "<h1>" . htmlspecialchars($table['tableName']) . "</h1>";
+    echo "<p><em>" . htmlspecialchars($style_names) . "</em></p>";
 
+    $empty_entries = get_empty_entries($styles);
 
-        $empty_entries = get_empty_entries($styleCategory, $styleSubCategory);
+    echo '<br>';
+    if (count($empty_entries) > 0) {
+        echo '<h3>Vzorky bez hodnocení</h3>';
+        echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th></tr>';
+        foreach ($empty_entries as $row_psql) {
+            echo '<tr><td>' . $row_psql['bid'] . '</td></tr>';
+        }
+        echo '</table>';
+    }
 
-        echo '<br>';
-        if (count($empty_entries) > 0) {
-            echo '<h3>Vzorky bez hodnocení</h3>';
-            echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th></tr>';
-            foreach ($empty_entries as $row_psql) {
-                echo '<tr><td>' . $row_psql['bid'] . '</td></tr>';
+    $judges = get_judges($styleIds);
+    echo '<br>';
+    if (count($judges) > 0) {
+        foreach ($judges as $row_jsql) {
+            echo '<h2>' . htmlspecialchars($row_jsql['brewerLastName'] . ' ' . $row_jsql['brewerFirstName']) . '</h2>';
+
+            $entries = get_entries($styleIds, $row_jsql['jid']);
+
+            echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th><th>score</th></tr>';
+            foreach ($entries as $row_esql) {
+                ?>
+                <tr role="row">
+                    <td><?php echo $row_esql['eid']; ?></td>
+                    <td><?php
+                        $finalScore = $row_esql['evalFinalScore'];
+                        echo $finalScore;
+                        $score_sum = $row_esql['evalAromaScore'] + $row_esql['evalAppearanceScore'] + $row_esql['evalFlavorScore'] + $row_esql['evalMouthfeelScore'] + $row_esql['evalOverallScore'];
+                        if ($score_sum != $finalScore) {
+                            echo '<span style="color:red;font-weight: bold"> (' . $score_sum . ')</span>';
+                        }
+                    ?></td>
+                </tr>
+                <?php
             }
             echo '</table>';
-        }
-
-        $judges = get_judges($row_ssql['styleId']);
-        echo '<br>';
-        if (count($judges) > 0) {
-            foreach ($judges as $row_jsql) {
-                echo '<h2>' . $row_jsql['brewerLastName'] . ' ' . $row_jsql['brewerFirstName'] . '</h2>';
-
-                $entries = get_entries($row_ssql['styleId'], $row_jsql['jid']);
-
-
-                echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th><th>score</th></tr>';
-                if (count($entries) > 0) {
-                    foreach ($entries as $row_esql) {
-                        ?>
-                        <tr role="row">
-                            <td><?php echo $row_esql['eid']; ?></td>
-                            <td><?php
-                            $finalScore = $row_esql['evalFinalScore'];
-                            echo $finalScore;
-
-                            $score_sum = $row_esql['evalAromaScore'] + $row_esql['evalAppearanceScore'] + $row_esql['evalFlavorScore'] + $row_esql['evalMouthfeelScore'] + $row_esql['evalOverallScore'];
-                            if ($score_sum != $finalScore) {
-                                echo '<span style="color:red;font-weight: bold"> (' . $score_sum . ')</span>';
-                            }
-                            ?></td>
-                        </tr>
-
-                        <?php
-                    }
-                }
-                echo '</table>';
-            }
         }
     }
 }

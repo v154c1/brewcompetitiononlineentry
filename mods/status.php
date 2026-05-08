@@ -1,7 +1,7 @@
 <?php
-ini_set('display_errors', 1); // Change to 0 for prod; change to 1 for testing.
-ini_set('display_startup_errors', 1); // Change to 0 for prod; change to 1 for testing.
-error_reporting(E_ALL); // Change to error_reporting(0) for prod; change to E_ALL for testing.
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 require_once('../paths.php');
 require_once(CONFIG . 'bootstrap.php');
@@ -12,7 +12,6 @@ if (!$admin_role) {
     echo "<h1>Access denied!</h1>";
     die;
 }
-
 
 $stylesTable = $prefix . "styles";
 $brewingTable = $prefix . "brewing";
@@ -25,124 +24,121 @@ $brewersTables = $prefix . "brewer";
 
 function get_entries_count()
 {
-    global $brewingTable;
-    global $connection;
-
+    global $brewingTable, $connection;
     $db = new MysqliDb($connection);
     $db->where('brewPaid', 1);
     $db->where('brewReceived', 1);
-
     return $db->getValue($brewingTable, 'count(*)');
 }
 
 function get_evaluations_count()
 {
-    global $connection;
-    global $evalTable;
-
+    global $evalTable, $connection;
     $db = new MysqliDb($connection);
-
     return $db->getValue($evalTable, 'count(distinct eid)');
 }
 
 function get_score_count()
 {
-    global $connection;
-    global $scoresTable;
-
+    global $scoresTable, $connection;
     $db = new MysqliDb($connection);
-
     return $db->getValue($scoresTable, 'count(distinct eid)');
 }
 
-
 function get_tables()
 {
-    global $tablesTable;
-    global $stylesTable;
-    global $connection;
-
+    global $tablesTable, $connection;
     $db = new MysqliDb($connection);
-    $db->join("$stylesTable styles", "styles.id=tables.tableStyles", "LEFT");
-    $db->orderBy('styles.brewStyle', 'asc');
-    return $db->get("$tablesTable tables", null, "tables.id as tableId, tableName, styles.brewStyle, styles.id as styleId, styles.brewStyleGroup, styles.brewStyleNum");
-
+    $db->orderBy('tableName', 'asc');
+    return $db->get($tablesTable, null, "id as tableId, tableName, tableStyles");
 }
 
-function get_table_entries_count($styleCategory, $styleSubCategory)
+function parse_style_ids($tableStyles)
 {
-    global $brewingTable;
-    global $connection;
-//    global $evalTable;
+    if (empty($tableStyles)) return [];
+    $ids = array_values(array_filter(array_map('intval', explode(',', $tableStyles))));
+    return $ids;
+}
 
+function get_styles_info($styleIds)
+{
+    global $stylesTable, $connection;
+    if (empty($styleIds)) return [];
     $db = new MysqliDb($connection);
-    $db->where('brewCategory', $styleCategory);
-    $db->where('brewSubCategory', $styleSubCategory);
+    $db->where('id', $styleIds, 'IN');
+    $db->orderBy('brewStyleGroup', 'asc');
+    $db->orderBy('brewStyleNum', 'asc');
+    return $db->get($stylesTable, null, "id, brewStyle, brewStyleGroup, brewStyleNum");
+}
+
+// Count entries for a single style (by category/subcategory)
+function get_entries_count_for_style($brewStyleGroup, $brewStyleNum)
+{
+    global $brewingTable, $connection;
+    $db = new MysqliDb($connection);
+    $db->where('brewCategory', $brewStyleGroup);
+    $db->where('brewSubCategory', $brewStyleNum);
     $db->where('brewPaid', 1);
     $db->where('brewReceived', 1);
-
-//    return $db->get("$brewingTable entries");
-    return $db->getValue($brewingTable, 'count(*)');
+    return (int)$db->getValue($brewingTable, 'count(*)');
 }
 
-
-function get_table_evaluated_entries_count($styleId)
+// Count entries across all styles in a table
+function get_table_entries_count($styles)
 {
-    global $brewingTable;
-    global $connection;
-    global $evalTable;
-
-    $db = new MysqliDb($connection);
-    $db->where('evalStyle', $styleId);
-//    $db->groupBy('eid');
-
-
-//    return $db->get("$brewingTable entries");
-    return $db->getValue($evalTable, 'count(distinct eid)');
+    $total = 0;
+    foreach ($styles as $style) {
+        $total += get_entries_count_for_style($style['brewStyleGroup'], $style['brewStyleNum']);
+    }
+    return $total;
 }
 
-function get_table_scoresheet_count($styleId)
+// Count distinct evaluated entries across all style IDs in a table
+function get_table_evaluated_entries_count($styleIds)
 {
-    global $brewingTable;
-    global $connection;
-    global $evalTable;
-
+    global $evalTable, $connection;
+    if (empty($styleIds)) return 0;
     $db = new MysqliDb($connection);
-    $db->where('evalStyle', $styleId);
-
-//    return $db->get("$brewingTable entries");
-    return $db->getValue($evalTable, 'count(*)');
+    $db->where('evalStyle', $styleIds, 'IN');
+    return (int)$db->getValue($evalTable, 'count(distinct eid)');
 }
 
-function get_style_score_count($styleCategory, $styleSubCategory)
+// Count total scoresheets across all style IDs in a table
+function get_table_scoresheet_count($styleIds)
 {
-    global $brewingTable;
-    global $connection;
-    global $scoresTable;
-
+    global $evalTable, $connection;
+    if (empty($styleIds)) return 0;
     $db = new MysqliDb($connection);
-    $db->join($scoresTable . " score", "score.eid=brewing.id", "LEFT");
-    $db->where('brewing.brewCategory', $styleCategory);
-    $db->where('brewing.brewSubCategory', $styleSubCategory);
-    $db->where('score.id', null, 'IS NOT');
-
-
-    return $db->getValue($brewingTable . " brewing", 'count(distinct brewing.id)');
+    $db->where('evalStyle', $styleIds, 'IN');
+    return (int)$db->getValue($evalTable, 'count(*)');
 }
 
-function get_duplicate_entries($styleId)
+// Count entries with at least one score, across all styles in a table
+function get_table_score_count($styles)
 {
-    global $brewingTable;
-    global $connection;
-    global $evalTable;
+    global $brewingTable, $scoresTable, $connection;
+    if (empty($styles)) return 0;
+    $total = 0;
+    foreach ($styles as $style) {
+        $db = new MysqliDb($connection);
+        $db->join($scoresTable . " score", "score.eid=brewing.id", "LEFT");
+        $db->where('brewing.brewCategory', $style['brewStyleGroup']);
+        $db->where('brewing.brewSubCategory', $style['brewStyleNum']);
+        $db->where('score.id', null, 'IS NOT');
+        $total += (int)$db->getValue($brewingTable . " brewing", 'count(distinct brewing.id)');
+    }
+    return $total;
+}
 
+// Find entries with duplicate scoresheets across all style IDs in a table
+function get_duplicate_entries($styleIds)
+{
+    global $evalTable, $connection;
+    if (empty($styleIds)) return [];
     $db = new MysqliDb($connection);
-    $db->where('evalStyle', $styleId);
+    $db->where('evalStyle', $styleIds, 'IN');
     $db->groupBy('eid');
     $db->having('count(*) > 1');
-
-
-//    return $db->get("$brewingTable entries");
     return $db->get($evalTable, null, 'eid, count(*) as count');
 }
 
@@ -159,7 +155,6 @@ function get_duplicate_entries($styleId)
     if (CDN) include(INCLUDES . 'load_cdn_libraries.inc.php');
     else include(INCLUDES . 'load_local_libraries.inc.php');
     ?>
-    <!-- Load BCOE&M Custom CSS - Contains Bootstrap overrides and custom classes common to all BCOE&M themes -->
     <link rel="stylesheet" type="text/css" href="<?php echo $css_url . "common.min.css"; ?>"/>
     <link rel="stylesheet" type="text/css" href="<?php echo $theme; ?>"/>
 
@@ -168,27 +163,13 @@ function get_duplicate_entries($styleId)
         var email_url = "<?php echo $ajax_url; ?>valid_email.ajax.php";
         var user_agent_msg = "<?php echo $alert_text_086; ?>";
         var setup = 0;
-
-
-        $(document).ready(function () {
-            console.log($('#entryTable'));
-            $('#entryTable').dataTable({
-                "order": [[0, "asc"]],
-                "sortable": true,
-                "paging": false,
-                "searching": true,
-                "info": false,
-                "columnDefs": []
-            });
-        });
     </script>
 </head>
 <body>
 
 <?php
 
-$styles = get_tables();
-
+$tables = get_tables();
 
 function td($val)
 {
@@ -197,13 +178,12 @@ function td($val)
 
 ?>
 
-
 <style>
     .overview TR TH {
         padding-right: 2em;
     }
-
 </style>
+
 <h2>Stav zpracovani</h2>
 <h3>Prehled</h3>
 <table class="overview">
@@ -220,53 +200,53 @@ function td($val)
         <td><?php echo get_score_count() ?></td>
     </tr>
 </table>
+
 <h3>Stoly</h3>
 <table class="table table-responsive table-striped table-bordered no-footer">
     <tr>
         <th>Stul</th>
+        <th>Styly</th>
         <th>Zpracovano</th>
-        <th>pocet scoresheetu</th>
-        <th>zapsanych score</th>
+        <th>Pocet scoresheetu</th>
+        <th>Zapsanych score</th>
         <th>Duplikatni vzorky</th>
     </tr>
     <?php
-    foreach ($styles as $style) {
-        $total_entries = get_table_entries_count($style['brewStyleGroup'], $style['brewStyleNum']);
-        $processed_entries = get_table_evaluated_entries_count($style['styleId']);
-        $scoresheet_count = get_table_scoresheet_count($style['styleId']);
-        $scores_count = get_style_score_count($style['brewStyleGroup'], $style['brewStyleNum']);
-        echo "<tr>";
+    foreach ($tables as $table) {
+        $styleIds = parse_style_ids($table['tableStyles']);
+        $styles = get_styles_info($styleIds);
 
-        td($style['tableName']);
+        $total_entries = get_table_entries_count($styles);
+        $processed_entries = get_table_evaluated_entries_count($styleIds);
+        $scoresheet_count = get_table_scoresheet_count($styleIds);
+        $scores_count = get_table_score_count($styles);
+        $dup = get_duplicate_entries($styleIds);
+
+        $style_names = implode(', ', array_map(function ($s) {
+            return $s['brewStyleGroup'] . $s['brewStyleNum'] . ' ' . $s['brewStyle'];
+        }, $styles));
+
+        $dupstr = '';
+        foreach ($dup as $entry) {
+            $dupstr .= $entry['eid'] . '(' . $entry['count'] . '), ';
+        }
+
+        echo "<tr>";
+        td($table['tableName']);
+        td($style_names ?: '<em>nezarazeno</em>');
         td(strval($processed_entries) . "/" . $total_entries);
         td($scoresheet_count);
         td($scores_count);
-//        if ($scoresheet_count != $processed_entries) {
-        $dup = get_duplicate_entries($style['styleId']);;
-        $dupstr = "";
-
-        foreach ($dup as $entry) {
-            $dupstr = $dupstr . $entry['eid'] . '(' . $entry['count'] . '), ';
-        }
-
         td($dupstr);
-//        }
         echo "</tr>\n";
-
     }
-
-    //    <tr></tr>
-
-
     ?>
-
 </table>
+
 <script>
     $(document).ready(() => {
         window.setTimeout(() => location.reload(), 5000);
-    })
-
-
+    });
 </script>
 </body>
 </html>
