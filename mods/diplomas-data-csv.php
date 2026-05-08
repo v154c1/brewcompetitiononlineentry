@@ -29,13 +29,14 @@ if (!function_exists('fputcsv')) {
 }
 
 $shortStyles = array(
-    "A" => "světlé pivo, spodně kvašené",
-    "B" => "polotmavé a tmavé pivo, spodně kvašené",
-    "C" => "svrchně kvašené pivo, mimo<br>pšenice a stout/porter",
-    "D" => "pivo pšeničné",
-    "E" => "stout/porter",
-    "F" => "nakuřované pivo",
-    "Q" => "kyseláče"
+    "A" => "Světlý ležák",
+    "B" => "Polotmavý a tmavý ležák",
+    "C" => "Pale ale",
+    "D" => "IPL experimental",
+    "E" => "Baltic porter",
+    "G" => "Klášterní pivo",
+    "F" => "Divoká karta",
+    "H" => "Divoká karta",
 );
 
 function get_style_id($styleName)
@@ -65,6 +66,8 @@ function get_filtered_entries($style, $place, $color)
     if ($place != 'all') {
         if ($place == 'none') {
             $db->where('(score.scorePlace IS NULL OR score.scorePlace = "")');
+        } elseif ($place == 'any') {
+            $db->where('(score.scorePlace IS NOT NULL AND score.scorePlace > 0)');
         } else {
             $db->where('score.scorePlace', $place);
         }
@@ -110,21 +113,29 @@ header('Expires: 0');
 $fp = fopen('php://output', 'w');
 
 // Header line
-fputcsv($fp, array('ID', 'Short Style', 'Style', 'Place', 'Score', 'Brewer', 'Co-Brewer', 'Entry Name', 'Club', 'Description'), ';');
+fputcsv($fp, array('ID', 'Short Style', 'Style', 'Place', 'Score', 'Brewer', 'Co-Brewer', 'Entry Name', 'Club', 'Description', 'Score2', 'place_text', 'score_text', 'brewers_text'), ';');
 
 foreach ($entries as $entry) {
     $styleId = get_style_id($entry['brewStyle']);
+    $score2 = $entry['scoreEntry'] * 2;
+    $place = $entry['scorePlace'];
+    $brewer = html_entity_decode($entry['brewBrewerFirstName'] . ' ' . $entry['brewBrewerLastName']);
+    $cobrewer = html_entity_decode($entry['brewCoBrewer']);
     $line = array(
         $entry['brewId'],
         $styleId,
         html_entity_decode($entry['brewStyle']),
-        $entry['scorePlace'] ? $entry['scorePlace'] : '-',
+        $place ? $place : '-',
         $entry['scoreEntry'],
-        html_entity_decode($entry['brewBrewerFirstName'] . ' ' . $entry['brewBrewerLastName']),
-        html_entity_decode($entry['brewCoBrewer']),
+        $brewer,
+        $cobrewer,
         html_entity_decode($entry['brewName']),
         html_entity_decode($entry['brewerClubs']),
-        isset($shortStyles[$styleId]) ? str_replace('<br>', ' ', $shortStyles[$styleId]) : ''
+        isset($shortStyles[$styleId]) ? str_replace('<br>', ' ', $shortStyles[$styleId]) : '',
+        $score2,
+        ($place && $place > 0) ? 'Za ' . $place . '. místo' : '',
+        html_entity_decode($entry['brewName']). ', ' . $score2 . ' b.',
+        $cobrewer ? $brewer . ', ' . $cobrewer : $brewer,
     );
     fputcsv($fp, $line, ';');
 }

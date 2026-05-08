@@ -69,6 +69,8 @@ function get_filtered_entries($style, $place, $color)
     if ($place != 'all') {
         if ($place == 'none') {
             $db->where('(score.scorePlace IS NULL OR score.scorePlace = "")');
+        } elseif ($place == 'any') {
+            $db->where('(score.scorePlace IS NOT NULL AND score.scorePlace > 0)');
         } else {
             $db->where('score.scorePlace', $place);
         }
@@ -145,6 +147,7 @@ if (isset($_POST['show'])) {
                         <option value="1" <?php if ($selected_place == '1') echo 'selected'; ?>>1st Place</option>
                         <option value="2" <?php if ($selected_place == '2') echo 'selected'; ?>>2nd Place</option>
                         <option value="3" <?php if ($selected_place == '3') echo 'selected'; ?>>3rd Place</option>
+                        <option value="any" <?php if ($selected_place == 'any') echo 'selected'; ?>>Any Place</option>
                         <option value="none" <?php if ($selected_place == 'none') echo 'selected'; ?>>No Place</option>
                     </select>
                 </div>
