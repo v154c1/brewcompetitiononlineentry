@@ -152,7 +152,7 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
         global $connection;
         $db = new MysqliDb($connection);
         $db->orderBy("brewStyle", "asc");
-        return $db->get("$brewingTable brewing", null, "DISTINCT brewStyle");
+        return $db->get("$brewingTable brewing", null, "DISTINCT brewStyle, brewSubCategory");
 
     }
 
@@ -181,6 +181,8 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
     if (preg_match($pattern, $style, $matches)) {
         $id_prefix = $matches[0];
+    } else {
+        $id_prefix = $row_ssql['brewSubCategory'];
     }
 
     $entries = get_entries($style);
