@@ -1,170 +1,139 @@
 <?php
-error_reporting(E_ALL ^ E_NOTICE);
-ini_set('display_errors', '1');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 require('../paths.php');
 require(CONFIG . 'bootstrap.php');
-require(INCLUDES . 'url_variables.inc.php');
-require(LANG . 'language.lang.php');
 
-$winner_method = $_SESSION['prefsWinnerMethod'];
-$style_set = $_SESSION['prefsStyleSet'];
-$pro_edition = $_SESSION['prefsProEdition'];
 $admin_role = FALSE;
 if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
+
+if (!$admin_role) {
+    echo "<h1>Access denied!</h1>";
+    die;
+}
+
+$brewingTable = $prefix . "brewing";
+$scoresTable  = $prefix . "judging_scores";
+$brewersTable = $prefix . "brewer";
+
+function get_styles()
+{
+    global $brewingTable, $scoresTable, $connection;
+    $db = new MysqliDb($connection);
+    $db->join($scoresTable . " score", "score.eid = brewing.id", "INNER");
+    $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+    $db->orderBy('brewing.brewStyle', 'asc');
+    $rows = $db->get($brewingTable . " brewing", null, 'DISTINCT brewing.brewStyle');
+    return array_column($rows, 'brewStyle');
+}
+
+function get_entries_for_style($style)
+{
+    global $brewingTable, $scoresTable, $brewersTable, $connection;
+    $db = new MysqliDb($connection);
+    $db->join($scoresTable . " score", "score.eid = brewing.id", "LEFT");
+    $db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
+    $db->where('brewing.brewStyle', $style);
+    $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+    $db->orderBy('score.scoreEntry', 'desc');
+    return $db->get($brewingTable . " brewing", null,
+        'brewing.id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');
+}
+
+function diploma_class($scoreEntry)
+{
+    if ($scoreEntry >= 45) return 'goldenDiplom';
+    if ($scoreEntry >= 41) return 'silverDiplom';
+    if ($scoreEntry >= 36) return 'bronzeDiplom';
+    return '';
+}
+
+function diploma_name_cs($scoreEntry)
+{
+    if ($scoreEntry >= 45) return 'Zlato';
+    if ($scoreEntry >= 41) return 'Stříbro';
+    if ($scoreEntry >= 36) return 'Bronz';
+    return '';
+}
+
+$styles = get_styles();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php echo $_SESSION['contestName']; ?> - Brew Competition Online Entry &amp; Management</title>
-    <?php
-    if (CDN) include(INCLUDES . 'load_cdn_libraries.inc.php');
-    else include(INCLUDES . 'load_local_libraries.inc.php');
-    ?>
-    <!-- Load BCOE&M Custom CSS - Contains Bootstrap overrides and custom classes common to all BCOE&M themes -->
-    <link rel="stylesheet" type="text/css" href="<?php echo $css_url . "common.min.css"; ?>"/>
-    <link rel="stylesheet" type="text/css" href="<?php echo $theme; ?>"/>
-
-    <script type="text/javascript">
-        var username_url = "<?php echo $ajax_url; ?>username.ajax.php";
-        var email_url = "<?php echo $ajax_url; ?>valid_email.ajax.php";
-        var user_agent_msg = "<?php echo $alert_text_086; ?>";
-        var setup = 0;
-    </script>
-
-    <!-- Load BCOE&M Custom JS -->
-    <script src="<?php echo $js_url; ?>bcoem_custom.min.js"></script>
-
-    <!-- Open Graph Implementation -->
-    <?php if (!empty($_SESSION['contestName'])) { ?>
-        <meta property="og:title" content="<?php echo $_SESSION['contestName'] ?>"/>
-    <?php } ?>
-    <?php if (!empty($_SESSION['contestLogo'])) { ?>
-        <meta property="og:image" content="<?php echo $base_url . "user_images/" . $_SESSION['contestLogo'] ?>"/>
-    <?php } ?>
-    <meta property="og:url"
-          content="<?php echo "http" . ((!empty($_SERVER['HTTPS'])) ? "s://" : "://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>"/>
+    <title><?php echo htmlspecialchars($_SESSION['contestName']); ?> – Results</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <style>
-        .goldenDiplom {
-            background-color: gold;
-        }
-
-        .silverDiplom {
-            background-color: silver;
-
-        }
-
-        .bronzeDiplom {
-            background-color: #bfa396;
-        }
+        body { padding: 20px; }
+        .goldenDiplom { background-color: #ffd700; }
+        .silverDiplom { background-color: #c0c0c0; }
+        .bronzeDiplom { background-color: #bfa396; }
+        .category-block + .category-block { page-break-before: always; }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
+<div class="container-fluid">
 
+    <div class="no-print" style="margin-bottom:15px">
+        <a href="cech_admin.php" class="btn btn-default">Back</a>
+    </div>
 
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample">Debug VARS</button>-->
-<!--<button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse">Details</button>-->
+    <h1><?php echo htmlspecialchars($_SESSION['contestName']); ?></h1>
 
-<!--<pre class="collapse" id="collapseExample">-->
-<!---->
-<?php
-//
-//print_r($_SESSION);
-//?>
-<!--</pre>-->
-<?php
-if (!$admin_role) {
-    die('not an admin!');
+    <?php if (empty($styles)): ?>
+        <p class="text-muted">No diploma-level results yet.</p>
+    <?php else: ?>
+        <?php foreach ($styles as $style):
+            $entries = get_entries_for_style($style);
+            if (empty($entries)) continue;
 
-}
-$stylesTable = $prefix . "styles";
-$brewingTable = $prefix . "brewing";
-$scoresTable = $prefix . "judging_scores";
-$brewersTables = $prefix . "brewer";
-
-
-$style_sql = strtr('SELECT DISTINCT brewStyle FROM {brewingTable} ORDER BY brewStyle ASC',
-    array(
-        '{brewingTable}' => $brewingTable
-    )
-);
-$ssql = mysqli_query($connection, $style_sql) or die (mysqli_error($connection));
-$row_ssql = mysqli_fetch_assoc($ssql);
-$totalRows_ssql = mysqli_num_rows($ssql);
-
-if ($totalRows_ssql > 0) {
-    do {
-
-        $style = $row_ssql['brewStyle'];
-        echo "<h1>$style</h1>";
-
-//$query_sql = sprintf($query_sql = "SELECT * FROM %s LEFT JOIN %s ON %s.id = %s.eid LEFT JOIN %s ON %s.brewBrewerID = %s.id ORDER BY %s.brewCategorySort", $brewingTable, $scoresTable, $brewingTable, $scoresTable, $brewersTables, $brewingTable, $brewersTables, $brewingTable);
-        $query_sql = strtr('SELECT * FROM {brewingTable} LEFT JOIN {scoresTable} ON {brewingTable}.id = {scoresTable}.eid LEFT JOIN {brewersTable} ON {brewingTable}.brewBrewerID = {brewersTable}.id  WHERE `{brewingTable}`.`brewStyle` = \'{style}\' ORDER BY {scoresTable}.scoreEntry DESC',
-            array(
-                '{brewingTable}' => $brewingTable,
-                '{scoresTable}' => $scoresTable,
-                '{brewersTable}' => $brewersTables,
-                '{style}' => $style
-            )
-        );
-
-        $sql = mysqli_query($connection, $query_sql) or die (mysqli_error($connection));
-        $row_sql = mysqli_fetch_assoc($sql);
-        $num_fields = mysqli_num_fields($sql);
-        $totalRows_sql = mysqli_num_rows($sql);
-
-
-        if ($totalRows_sql > 0) {
-            ?>
-            <table class="table">
-            <?php
-            echo "<tr><th scope=\"col\">Diplomy</th><th scope=\"col\">$label_brewer</th><th scope=\"col\">$label_cobrewer</th><th scope=\"col\">$label_entry</th><th scope=\"col\">$label_style</th><th scope=\"col\">$label_score</th></tr>\n";
-
-            do {
-                $score = '';
-                $diplomClass = '';
-
-                $scoreEntry = $row_sql['scoreEntry'];
-                $scorePlace = $row_sql['scorePlace'];
-                $brewId = $row_sql['eid'];
-                if ($scoreEntry) {
-                    $score = $scoreEntry * 2;
-                    if ($score >= 90) {
-                        $diplomClass = "goldenDiplom";
-                    } else if ($score > 80) {
-                        $diplomClass = "silverDiplom";
-                    } else if ($score > 70) {
-                        $diplomClass = "bronzeDiplom";
-                    }
-                }
-echo "<!--";
-                print_r($row_sql);
-                echo "-->";
-//        print_r($row_sql);
-                echo "<tr class='$diplomClass' scope=\"row\"'>";
-                if ($scoreEntry > 35 || $scorePlace) {
-                    echo "<th><a href=\"print-diploma.php?entry=$brewId\">Diplom</a></th>";
-                } else {
-                    echo  "<td>$scorePlace</td>";
-                }
-
-                echo "<td>" . $row_sql['brewBrewerFirstName'] . " " . $row_sql['brewBrewerLastName'] . "</td><td>" . $row_sql['brewCoBrewer'] . "</td><td>" . $row_sql['brewName'] . "</td><td>" . $row_sql['brewStyle'] . "</td><td>" . $score . "</td></tr>\n";
-//        echo "<br><br>";
-
-            } while ($row_sql = mysqli_fetch_assoc($sql));
-        }
+            usort($entries, function($a, $b) {
+                $ap = !empty($a['scorePlace']);
+                $bp = !empty($b['scorePlace']);
+                if ($ap && $bp)  return (int)$a['scorePlace'] - (int)$b['scorePlace'];
+                if ($ap)         return -1;
+                if ($bp)         return 1;
+                return (float)$b['scoreEntry'] - (float)$a['scoreEntry'];
+            });
         ?>
+            <div class="category-block">
+            <h3><?php echo htmlspecialchars(html_entity_decode($style)); ?></h3>
+            <table class="table table-bordered table-condensed">
+                <thead>
+                    <tr>
+                        <th>Umístění</th>
+                        <th>Sládek</th>
+                        <th>Podsládek</th>
+                        <th>Vzorek</th>
+                        <th>Skóre</th>
+                        <th>Diplom</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($entries as $e):
+                        $class = diploma_class((float)$e['scoreEntry']);
+                    ?>
+                        <tr class="<?php echo $class; ?>">
+                            <td><?php echo !empty($e['scorePlace']) ? htmlspecialchars($e['scorePlace']) : '&mdash;'; ?></td>
+                            <td><?php echo htmlspecialchars(html_entity_decode($e['brewBrewerFirstName']) . ' ' . html_entity_decode($e['brewBrewerLastName'])); ?></td>
+                            <td><?php echo htmlspecialchars(html_entity_decode($e['brewCoBrewer'])); ?></td>
+                            <td><?php echo htmlspecialchars(html_entity_decode($e['brewName'])); ?></td>
+                            <td><?php echo htmlspecialchars($e['scoreEntry']*2); ?></td>
+                            <td><?php echo diploma_name_cs((float)$e['scoreEntry']); ?></td>
+                            <td class="no-print"><a href="diploma-preview.php?id=<?php echo $e['id']; ?>" target="_blank" class="btn btn-xs btn-default">Diplom</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
-        </table>
-        <?php
-    } while ($row_ssql = mysqli_fetch_assoc($ssql));
-}
-?>
-
-
+</div>
 </body>
 </html>
