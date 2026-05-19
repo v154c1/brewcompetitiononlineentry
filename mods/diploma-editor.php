@@ -7,6 +7,7 @@ require_once('../paths.php');
 require_once(CONFIG . 'bootstrap.php');
 require_once(INCLUDES . 'url_variables.inc.php');
 require_once(MODS . 'cech_common.php');
+require_once(MODS . 'cech-print-common.php');
 
 $admin_role = FALSE;
 if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
@@ -45,6 +46,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         header('Content-Type: application/json');
         echo json_encode(['ok' => false, 'error' => 'Invalid JSON']);
     }
+    exit;
+}
+
+// --- POST: render preview via fetch (?action=preview) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'preview') {
+    $payload = json_decode(file_get_contents('php://input'), true);
+    $boxes   = $payload['boxes'] ?? [];
+    $vars    = $payload['vars']  ?? [];
+    $bg_file = $payload['background'] ?? '';
+
+    // Substitution for category name
+    if (isset($vars['category'])) {
+        $cat_names = $cech_config['diploma']['category_names'] ?? [];
+        if (isset($cat_names[$vars['category']])) {
+            $vars['category'] = $cat_names[$vars['category']];
+        } else {
+            $vars['category'] = html_entity_decode($vars['category']);
+        }
+    }
+
+    $bg_url  = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
+
+    header('Content-Type: text/html; charset=utf-8');
+    echo render_diploma_html($bg_url, $boxes, $vars);
     exit;
 }
 
@@ -173,10 +198,17 @@ if ($current_template) {
     $boxes_json = json_encode(isset($current_template['boxes']) ? $current_template['boxes'] : [], JSON_UNESCAPED_UNICODE);
 }
 
-$brewingTable = $prefix . "brewing";
-$db_s = new MysqliDb($connection);
-$db_s->orderBy('brewStyle', 'asc');
-$all_styles = array_column($db_s->get($brewingTable, null, 'DISTINCT brewStyle'), 'brewStyle');
+$stylesTable = $prefix . "styles";
+$current_styles_active = json_decode($_SESSION['prefsSelectedStyles'], true);
+$selected_ids = !empty($current_styles_active) ? array_keys($current_styles_active) : [];
+
+$all_styles = [];
+if (!empty($selected_ids)) {
+    $db_s = new MysqliDb($connection);
+    $db_s->where('id', $selected_ids, 'IN');
+    $db_s->orderBy('brewStyle', 'asc');
+    $all_styles = array_column($db_s->get($stylesTable, null, 'DISTINCT brewStyle'), 'brewStyle');
+}
 
 $place_options = [
     ''     => 'No condition',
@@ -214,35 +246,30 @@ foreach ($templates as $t) {
     <title>Diploma Editor</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
+        <?php echo render_diploma_css(); ?>
         body { padding: 20px; }
         #diploma-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 141.42%;
             background: #ddd;
             border: 1px solid #ccc;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
         #diploma-inner {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
+            transform-origin: top center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
-        .diploma-box {
-            position: absolute;
+        #diploma-inner .diploma-box {
             cursor: move;
             border: 1px dashed #555;
             padding: 2px 4px;
             background: rgba(255,255,255,0.55);
-            white-space: pre-wrap;
-            overflow-wrap: break-word;
             user-select: none;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
         }
-        .diploma-box.selected { border: 2px solid #0074d9; background: rgba(200,230,255,0.7); }
+        #diploma-inner .diploma-box.selected { border: 2px solid #0074d9; background: rgba(200,230,255,0.7); }
         #props-panel { padding: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
         #props-panel label { font-weight: bold; margin-top: 8px; display: block; }
         #props-panel .form-control { margin-bottom: 6px; }
@@ -252,6 +279,7 @@ foreach ($templates as $t) {
         .cat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
         .cat-row .cat-orig { flex: 0 0 45%; font-size: 0.85em; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .cat-row input { flex: 1; }
+        #preview-container .diploma { margin: 0 auto; }
     </style>
 </head>
 <body>
@@ -358,7 +386,7 @@ foreach ($templates as $t) {
                 <div class="row">
                     <div class="col-sm-8">
                         <div id="diploma-wrapper">
-                            <div id="diploma-inner"
+                            <div id="diploma-inner" class="diploma"
                                  style="<?php echo $bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ')' : ''; ?>">
                             </div>
                         </div>
@@ -414,6 +442,7 @@ foreach ($templates as $t) {
                                 <hr>
                             <?php endif; ?>
                             <button id="btn-save" class="btn btn-primary btn-block">Save boxes</button>
+                            <button id="btn-preview" class="btn btn-info btn-block" style="margin-top:8px">Preview with variables</button>
                             <p id="save-status" class="text-muted" style="margin-top:6px;font-size:0.85em"></p>
                             <hr>
                             <p class="text-muted" style="font-size:0.85em">
@@ -460,6 +489,51 @@ foreach ($templates as $t) {
     </form>
 </dialog>
 
+<!-- Preview dialog -->
+<dialog id="preview-dialog" style="min-width: 800px; max-width: 95vw;">
+    <h3 style="display:flex;justify-content:space-between;align-items:center">
+        Preview
+        <button type="button" id="preview-close" class="btn btn-default btn-xs">×</button>
+    </h3>
+    <div class="row">
+        <div class="col-sm-4">
+            <h4>Variables</h4>
+            <div class="form-group">
+                <label>Brewer</label>
+                <input id="pre-brewer" type="text" class="form-control input-sm" value="Jan Sládek">
+            </div>
+            <div class="form-group">
+                <label>Name of beer</label>
+                <input id="pre-name" type="text" class="form-control input-sm" value="Vánoční speciál">
+            </div>
+            <div class="form-group">
+                <label>Place</label>
+                <input id="pre-place" type="text" class="form-control input-sm" value="1">
+            </div>
+            <div class="form-group">
+                <label>Score</label>
+                <input id="pre-score" type="text" class="form-control input-sm" value="92">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="pre-category" class="form-control input-sm">
+                    <?php foreach ($all_styles as $style): ?>
+                        <option value="<?php echo htmlspecialchars($style); ?>">
+                            <?php echo htmlspecialchars(html_entity_decode($style)); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button id="btn-pre-gen" class="btn btn-primary btn-block">Update Preview</button>
+        </div>
+        <div class="col-sm-8">
+            <div id="preview-container" style="background:#eee; padding:10px; height: 600px; overflow: auto; border: 1px solid #ccc">
+                <div id="preview-content"></div>
+            </div>
+        </div>
+    </div>
+</dialog>
+
 <script>
 (function () {
     document.getElementById('btn-categories').addEventListener('click', function () {
@@ -476,6 +550,7 @@ foreach ($templates as $t) {
     var btnAdd      = document.getElementById('btn-add');
     var btnDelete   = document.getElementById('btn-delete');
     var btnSave     = document.getElementById('btn-save');
+    var btnPreview  = document.getElementById('btn-preview');
     var saveStatus  = document.getElementById('save-status');
 
     var propTemplate = document.getElementById('prop-template');
@@ -493,6 +568,15 @@ foreach ($templates as $t) {
     var dragging   = null;
 
     function pct(px, total) { return (px / total) * 100; }
+
+    function resizeCanvas() {
+        var wrapper = document.getElementById('diploma-wrapper');
+        var scale = wrapper.offsetWidth / inner.offsetWidth;
+        inner.style.transform = 'scale(' + scale + ')';
+        wrapper.style.height = (inner.offsetHeight * scale) + 'px';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
     function renderBoxes() {
         inner.querySelectorAll('.diploma-box').forEach(function (el) { el.remove(); });
@@ -616,6 +700,50 @@ foreach ($templates as $t) {
         .then(function (d) { saveStatus.textContent = d.ok ? 'Saved.' : 'Error: ' + d.error; })
         .catch(function () { saveStatus.textContent = 'Network error.'; });
     });
+
+    // --- Preview logic ---
+    var previewDialog  = document.getElementById('preview-dialog');
+    var previewClose   = document.getElementById('preview-close');
+    var btnPreGen      = document.getElementById('btn-pre-gen');
+    var previewContent = document.getElementById('preview-content');
+
+    btnPreview.addEventListener('click', function() {
+        previewDialog.showModal();
+        generatePreview();
+    });
+
+    previewClose.addEventListener('click', function() {
+        previewDialog.close();
+    });
+
+    btnPreGen.addEventListener('click', generatePreview);
+
+    function generatePreview() {
+        previewContent.innerHTML = '<p class="text-muted">Generating...</p>';
+        var vars = {
+            brewer:   document.getElementById('pre-brewer').value,
+            name:     document.getElementById('pre-name').value,
+            place:    document.getElementById('pre-place').value,
+            score:    document.getElementById('pre-score').value,
+            category: document.getElementById('pre-category').value
+        };
+        
+        fetch('?action=preview', {
+            method: 'POST',
+            body: JSON.stringify({
+                boxes: boxes,
+                vars: vars,
+                background: <?php echo json_encode($current_template['background'] ?? ''); ?>
+            })
+        })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            previewContent.innerHTML = html;
+        })
+        .catch(function(err) {
+            previewContent.innerHTML = '<p class="text-danger">Error: ' + err + '</p>';
+        });
+    }
 
     renderBoxes();
     <?php endif; ?>

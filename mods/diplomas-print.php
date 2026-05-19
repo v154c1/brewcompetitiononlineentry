@@ -7,6 +7,7 @@ require_once('../paths.php');
 require_once(CONFIG . 'bootstrap.php');
 require_once(INCLUDES . 'url_variables.inc.php');
 require_once(MODS . 'cech_common.php');
+require_once(MODS . 'cech-print-common.php');
 
 $admin_role = FALSE;
 if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
@@ -21,45 +22,7 @@ $scoresTable  = $prefix . "judging_scores";
 $brewersTable = $prefix . "brewer";
 
 $diploma_config = isset($cech_config['diploma']) ? $cech_config['diploma'] : [];
-$templates      = isset($diploma_config['templates'])      ? $diploma_config['templates']      : [];
-$category_names = isset($diploma_config['category_names']) ? $diploma_config['category_names'] : [];
 
-function resolve_template($template, $vars)
-{
-    foreach ($vars as $key => $val) {
-        $template = str_replace('${' . $key . '}', $val, $template);
-    }
-    return $template;
-}
-
-function matches_template($t, $score_place, $score_entry)
-{
-    $place = isset($t['place']) ? $t['place'] : '';
-    $color = isset($t['color']) ? $t['color'] : '';
-
-    $place_ok = true;
-    if ($place === '1')        $place_ok = (string)$score_place === '1';
-    elseif ($place === '2')    $place_ok = (string)$score_place === '2';
-    elseif ($place === '3')    $place_ok = (string)$score_place === '3';
-    elseif ($place === 'any')  $place_ok = !empty($score_place);
-    elseif ($place === 'none') $place_ok = empty($score_place);
-
-    $s = (float)$score_entry;
-    $color_ok = true;
-    if ($color === 'gold')         $color_ok = $s >= 45;
-    elseif ($color === 'silver')   $color_ok = $s >= 41 && $s < 45;
-    elseif ($color === 'bronze')   $color_ok = $s >= 36 && $s < 41;
-
-    return $place_ok && $color_ok;
-}
-
-function find_matching_template($templates, $score_place, $score_entry)
-{
-    foreach ($templates as $t) {
-        if (matches_template($t, $score_place, $score_entry)) return $t;
-    }
-    return null;
-}
 
 $place_options = [
     ''     => 'All',
@@ -127,6 +90,7 @@ if ($show) {
     <meta charset="utf-8">
     <title>Diplomy – tisk</title>
     <style>
+        <?php echo render_diploma_css(); ?>
         * { box-sizing: border-box; }
         body { padding: 20px; background: #888; font-family: Arial, sans-serif; font-size: 14px; }
         .no-print { background: #fff; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
@@ -136,26 +100,7 @@ if ($show) {
         .no-print button, .no-print a.btn { display: inline-block; padding: 5px 12px; border: 1px solid #ccc; border-radius: 3px; background: #f8f8f8; cursor: pointer; text-decoration: none; color: #333; margin-right: 4px; }
         .no-print button.primary { background: #337ab7; border-color: #2e6da4; color: #fff; }
         .text-muted { color: #888; }
-        .diploma {
-            position: relative;
-            width: 210mm;
-            height: 297mm;
-            margin: 20px auto;
-            background-color: #fff;
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .diploma-box {
-            position: absolute;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            white-space: pre-wrap;
-            overflow-wrap: break-word;
-        }
+        .diploma { margin: 20px auto; }
         @page { size: A4 portrait; margin: 0; }
         @media print {
             body { background: none; padding: 0; }
@@ -218,58 +163,9 @@ if ($show) {
     <a href="cech_admin.php" class="btn">Back</a>
 </div>
 
-<?php foreach ($entries as $entry):
-    $tmpl = find_matching_template($templates, $entry['scorePlace'], $entry['scoreEntry']);
-    if (!$tmpl) continue;
-
-    $boxes      = isset($tmpl['boxes'])      ? $tmpl['boxes']      : [];
-    $bg_file    = isset($tmpl['background']) ? $tmpl['background'] : '';
-    $bg_url     = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
-
-    $brewer = html_entity_decode($entry['brewBrewerFirstName']) . ' ' . html_entity_decode($entry['brewBrewerLastName']);
-    if (!empty($entry['brewCoBrewer'])) $brewer .= ', ' . html_entity_decode($entry['brewCoBrewer']);
-
-    $vars = [
-        'brewer'   => $brewer,
-        'name'     => html_entity_decode($entry['brewName']),
-        'place'    => $entry['scorePlace'],
-        'score'    => $entry['scoreEntry'] !== null ? (int)$entry['scoreEntry'] * 2 : '',
-        'category' => isset($category_names[$entry['brewStyle']]) ? $category_names[$entry['brewStyle']] : html_entity_decode($entry['brewStyle']),
-    ];
-?>
-    <div class="diploma"
-         style="<?php echo $bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ')' : ''; ?>">
-        <?php foreach ($boxes as $box):
-            $text  = resolve_template(isset($box['template']) ? $box['template'] : '', $vars);
-
-            $valign = isset($box['valign']) ? $box['valign'] : 'middle';
-            $align  = isset($box['align']) ? $box['align'] : 'center';
-            $justify = 'center';
-            if ($valign === 'top') $justify = 'flex-start';
-            if ($valign === 'bottom') $justify = 'flex-end';
-            $items = 'center';
-            if ($align === 'left') $items = 'flex-start';
-            if ($align === 'right') $items = 'flex-end';
-
-            $style = sprintf(
-                'left:%.4f%%;top:%.4f%%;width:%.4f%%;height:%.4f%%;font-size:%dpt;color:%s;text-align:%s;justify-content:%s;align-items:%s;',
-                (float)(isset($box['x'])        ? $box['x']        : 0),
-                (float)(isset($box['y'])        ? $box['y']        : 0),
-                (float)(isset($box['width'])    ? $box['width']    : 60),
-                (float)(isset($box['height'])   ? $box['height']   : 5),
-                (int)  (isset($box['fontSize']) ? $box['fontSize'] : 18),
-                htmlspecialchars(isset($box['color']) ? $box['color'] : '#000000'),
-                htmlspecialchars($align),
-                $justify,
-                $items
-            );
-        ?>
-            <div class="diploma-box" style="<?php echo $style; ?>">
-                <?php echo htmlspecialchars($text); ?>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php endforeach; ?>
+<?php foreach ($entries as $entry) {
+    echo render_diploma($entry, $diploma_config, $base_url);
+} ?>
 
 </body>
 </html>
