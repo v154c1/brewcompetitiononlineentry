@@ -82,6 +82,35 @@ function get_tables_count()
     return (int)$db->getValue($tablesTable, 'count(*)');
 }
 
+function get_category_stats()
+{
+    global $brewingTable, $connection, $base_url;
+    $db = new MysqliDb($connection);
+    $query = "SELECT brewCategorySort, 
+                     COUNT(*) as total, 
+                     SUM(CASE WHEN brewPaid = 1 THEN 1 ELSE 0 END) as paid, 
+                     SUM(CASE WHEN brewReceived = 1 THEN 1 ELSE 0 END) as received 
+              FROM $brewingTable 
+              WHERE brewConfirmed = 1 
+              GROUP BY brewCategorySort 
+              ORDER BY brewCategorySort ASC";
+    $results = $db->rawQuery($query);
+
+    $stats = [];
+    foreach ($results as $row) {
+        $cat_num = $row['brewCategorySort'];
+        $cat_name = style_convert($cat_num, 1, $base_url);
+        $stats[] = [
+            'number' => $cat_num,
+            'name' => $cat_name,
+            'total' => (int)$row['total'],
+            'paid' => (int)$row['paid'],
+            'received' => (int)$row['received']
+        ];
+    }
+    return $stats;
+}
+
 function format_date_cs($value)
 {
     if (empty($value)) return '';
@@ -110,6 +139,7 @@ $scores               = get_score_count();
 $tables_count         = get_tables_count();
 $paid_not_received    = get_entries_paid_not_received();
 $received_not_paid    = get_entries_received_not_paid();
+$category_stats       = get_category_stats();
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -227,6 +257,33 @@ $received_not_paid    = get_entries_received_not_paid();
         <?php endif; ?>
     </div>
     <?php endif; ?>
+
+    <!-- Entries by Category -->
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Entries by Category</strong></div>
+        <div class="panel-body">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th class="text-center">Entries</th>
+                        <th class="text-center">Paid</th>
+                        <th class="text-center">Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($category_stats as $stat): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($stat['number']); ?> - <?php echo htmlspecialchars($stat['name']); ?></td>
+                        <td class="text-center"><?php echo $stat['total']; ?></td>
+                        <td class="text-center"><?php echo $stat['paid']; ?></td>
+                        <td class="text-center"><?php echo $stat['received']; ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <!-- Links -->
     <div class="panel panel-default">
