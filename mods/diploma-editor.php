@@ -235,9 +235,12 @@ foreach ($templates as $t) {
             border: 1px dashed #555;
             padding: 2px 4px;
             background: rgba(255,255,255,0.55);
-            white-space: pre;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
             user-select: none;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
         .diploma-box.selected { border: 2px solid #0074d9; background: rgba(200,230,255,0.7); }
         #props-panel { padding: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
@@ -377,8 +380,16 @@ foreach ($templates as $t) {
                                     <option value="center" selected>Center</option>
                                     <option value="right">Right</option>
                                 </select>
+                                <label>V-Align</label>
+                                <select id="prop-valign" class="form-control">
+                                    <option value="top">Top</option>
+                                    <option value="middle" selected>Middle</option>
+                                    <option value="bottom">Bottom</option>
+                                </select>
                                 <label>Width (%)</label>
                                 <input id="prop-width" type="number" class="form-control" value="60" min="5" max="100">
+                                <label>Height (%)</label>
+                                <input id="prop-height" type="number" class="form-control" value="5" min="1" max="100">
                                 <label>Position X (%)</label>
                                 <input id="prop-x" type="number" class="form-control" value="0" min="0" max="100" step="0.01">
                                 <label>Position Y (%)</label>
@@ -471,7 +482,9 @@ foreach ($templates as $t) {
     var propFontsize = document.getElementById('prop-fontsize');
     var propColor    = document.getElementById('prop-color');
     var propAlign    = document.getElementById('prop-align');
+    var propValign   = document.getElementById('prop-valign');
     var propWidth    = document.getElementById('prop-width');
+    var propHeight   = document.getElementById('prop-height');
     var propX        = document.getElementById('prop-x');
     var propY        = document.getElementById('prop-y');
 
@@ -493,9 +506,23 @@ foreach ($templates as $t) {
         el.style.left      = box.x + '%';
         el.style.top       = box.y + '%';
         el.style.width     = box.width + '%';
+        el.style.height    = (box.height || 5) + '%';
         el.style.fontSize  = box.fontSize + 'pt';
         el.style.color     = box.color;
         el.style.textAlign = box.align;
+
+        // Vertical align via flexbox
+        var justify = 'center';
+        if (box.valign === 'top') justify = 'flex-start';
+        if (box.valign === 'bottom') justify = 'flex-end';
+        el.style.justifyContent = justify;
+
+        // Horizontal align via flexbox (in addition to text-align)
+        var items = 'center';
+        if (box.align === 'left') items = 'flex-start';
+        if (box.align === 'right') items = 'flex-end';
+        el.style.alignItems = items;
+
         el.textContent     = box.template || '(empty)';
         el.addEventListener('mousedown', function (e) {
             e.stopPropagation();
@@ -519,7 +546,9 @@ foreach ($templates as $t) {
             propFontsize.value = box.fontSize;
             propColor.value    = box.color;
             propAlign.value    = box.align;
+            propValign.value   = box.valign || 'middle';
             propWidth.value    = box.width;
+            propHeight.value   = box.height || 5;
             propX.value        = box.x.toFixed(2);
             propY.value        = box.y.toFixed(2);
         }
@@ -533,13 +562,15 @@ foreach ($templates as $t) {
         box.fontSize = parseInt(propFontsize.value) || 18;
         box.color    = propColor.value;
         box.align    = propAlign.value;
+        box.valign   = propValign.value;
         box.width    = parseFloat(propWidth.value) || 60;
+        box.height   = parseFloat(propHeight.value) || 5;
         box.x        = parseFloat(propX.value) || 0;
         box.y        = parseFloat(propY.value) || 0;
         renderBoxes();
     }
 
-    [propTemplate, propFontsize, propColor, propAlign, propWidth, propX, propY].forEach(function (el) {
+    [propTemplate, propFontsize, propColor, propAlign, propValign, propWidth, propHeight, propX, propY].forEach(function (el) {
         el.addEventListener('input', updateSelected);
     });
 
@@ -560,7 +591,7 @@ foreach ($templates as $t) {
 
     btnAdd.addEventListener('click', function () {
         var newBox = { id: Date.now(), template: '${brewer}', x: 10, y: 10,
-                       width: 60, fontSize: 18, color: '#000000', align: 'center' };
+                       width: 60, height: 5, fontSize: 18, color: '#000000', align: 'center', valign: 'middle' };
         boxes.push(newBox);
         renderBoxes();
         selectBox(newBox.id);

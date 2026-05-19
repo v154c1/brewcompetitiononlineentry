@@ -130,6 +130,10 @@ $vars = [
         .diploma-box {
             position: absolute;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
         @page { size: A4 portrait; margin: 0; }
         @media print {
@@ -149,14 +153,27 @@ $vars = [
 <div id="diploma" style="<?php echo $bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ')' : ''; ?>">
     <?php foreach ($boxes as $box):
         $text     = resolve_template($box['template'] ?? '', $vars);
+
+        $valign = $box['valign'] ?? 'middle';
+        $align  = $box['align'] ?? 'center';
+        $justify = 'center';
+        if ($valign === 'top') $justify = 'flex-start';
+        if ($valign === 'bottom') $justify = 'flex-end';
+        $items = 'center';
+        if ($align === 'left') $items = 'flex-start';
+        if ($align === 'right') $items = 'flex-end';
+
         $style    = sprintf(
-            'left:%.4f%%;top:%.4f%%;width:%.4f%%;font-size:%dpt;color:%s;text-align:%s;',
+            'left:%.4f%%;top:%.4f%%;width:%.4f%%;height:%.4f%%;font-size:%dpt;color:%s;text-align:%s;justify-content:%s;align-items:%s;',
             (float)($box['x']        ?? 0),
             (float)($box['y']        ?? 0),
             (float)($box['width']    ?? 60),
+            (float)($box['height']   ?? 5),
             (int)  ($box['fontSize'] ?? 18),
             htmlspecialchars($box['color'] ?? '#000000'),
-            htmlspecialchars($box['align'] ?? 'center')
+            htmlspecialchars($align),
+            $justify,
+            $items
         );
     ?>
         <div class="diploma-box" style="<?php echo $style; ?>">
