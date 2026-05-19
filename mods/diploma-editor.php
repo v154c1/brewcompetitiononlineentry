@@ -379,6 +379,10 @@ foreach ($templates as $t) {
                                 </select>
                                 <label>Width (%)</label>
                                 <input id="prop-width" type="number" class="form-control" value="60" min="5" max="100">
+                                <label>Position X (%)</label>
+                                <input id="prop-x" type="number" class="form-control" value="0" min="0" max="100" step="0.01">
+                                <label>Position Y (%)</label>
+                                <input id="prop-y" type="number" class="form-control" value="0" min="0" max="100" step="0.01">
                                 <button id="btn-delete" class="btn btn-danger btn-block" style="margin-top:10px">Delete box</button>
                             </div>
                             <hr>
@@ -468,6 +472,8 @@ foreach ($templates as $t) {
     var propColor    = document.getElementById('prop-color');
     var propAlign    = document.getElementById('prop-align');
     var propWidth    = document.getElementById('prop-width');
+    var propX        = document.getElementById('prop-x');
+    var propY        = document.getElementById('prop-y');
 
     var boxes      = <?php echo $boxes_json; ?>;
     var selectedId = null;
@@ -514,6 +520,8 @@ foreach ($templates as $t) {
             propColor.value    = box.color;
             propAlign.value    = box.align;
             propWidth.value    = box.width;
+            propX.value        = box.x.toFixed(2);
+            propY.value        = box.y.toFixed(2);
         }
     }
 
@@ -526,10 +534,12 @@ foreach ($templates as $t) {
         box.color    = propColor.value;
         box.align    = propAlign.value;
         box.width    = parseFloat(propWidth.value) || 60;
+        box.x        = parseFloat(propX.value) || 0;
+        box.y        = parseFloat(propY.value) || 0;
         renderBoxes();
     }
 
-    [propTemplate, propFontsize, propColor, propAlign, propWidth].forEach(function (el) {
+    [propTemplate, propFontsize, propColor, propAlign, propWidth, propX, propY].forEach(function (el) {
         el.addEventListener('input', updateSelected);
     });
 
@@ -541,6 +551,8 @@ foreach ($templates as $t) {
         if (!box) return;
         box.x = Math.max(0, Math.min(100, dragging.origLeft + pct(dx, dragging.rectW)));
         box.y = Math.max(0, Math.min(100, dragging.origTop  + pct(dy, dragging.rectH)));
+        propX.value = box.x.toFixed(2);
+        propY.value = box.y.toFixed(2);
         renderBoxes();
     });
 
