@@ -199,6 +199,29 @@ function td($val)
         <th>Zapsanych score</th>
         <td><?php echo get_score_count() ?></td>
     </tr>
+    <tr>
+        <th>Zahájení hodnocení</th>
+        <td><?php echo (isset($_SESSION['jPrefsJudgingOpen']) && !empty($_SESSION['jPrefsJudgingOpen'])) ? getTimeZoneDateTime($_SESSION['prefsTimeZone'], $_SESSION['jPrefsJudgingOpen'], $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "system", "date-time-system") : "<em>nenastaveno</em>"; ?></td>
+    </tr>
+    <tr>
+        <th>Ukončení hodnocení</th>
+        <td><?php echo (isset($_SESSION['jPrefsJudgingClosed']) && !empty($_SESSION['jPrefsJudgingClosed'])) ? getTimeZoneDateTime($_SESSION['prefsTimeZone'], $_SESSION['jPrefsJudgingClosed'], $_SESSION['prefsDateFormat'], $_SESSION['prefsTimeFormat'], "system", "date-time-system") : "<em>nenastaveno</em>"; ?></td>
+    </tr>
+    <tr>
+        <th>Stav hodnocení</th>
+        <td><?php 
+            $now = time();
+            if (isset($_SESSION['jPrefsJudgingOpen']) && isset($_SESSION['jPrefsJudgingClosed']) && $now >= $_SESSION['jPrefsJudgingOpen'] && $now <= $_SESSION['jPrefsJudgingClosed']) {
+                echo '<span class="label label-success" style="font-size: 1em;">OTEVŘENO</span>';
+            } else {
+                echo '<span class="label label-danger" style="font-size: 1em;">UZAVŘENO</span>';
+            }
+        ?></td>
+    </tr>
+    <tr>
+        <th>Režim stolů</th>
+        <td><?php echo (isset($_SESSION['jPrefsTablePlanning']) && $_SESSION['jPrefsTablePlanning'] == 1) ? '<span class="label label-warning" style="font-size: 1em;">Plánování</span>' : '<span class="label label-success" style="font-size: 1em;">Soutěž</span>'; ?></td>
+    </tr>
 </table>
 
 <h3>Stoly <span class="text-primary" style="margin-left: 10px;">(<?php echo count($tables); ?>)</span></h3>
