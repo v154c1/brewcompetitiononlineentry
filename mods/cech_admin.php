@@ -35,7 +35,14 @@ function get_entries_total()
     return (int)$db->getValue($brewingTable, 'count(*)');
 }
 
-function get_evaluations_count()
+function get_evaluations_total_count()
+{
+    global $evalTable, $connection;
+    $db = new MysqliDb($connection);
+    return (int)$db->getValue($evalTable, 'count(*)');
+}
+
+function get_evaluations_distinct_count()
 {
     global $evalTable, $connection;
     $db = new MysqliDb($connection);
@@ -46,6 +53,14 @@ function get_score_count()
 {
     global $scoresTable, $connection;
     $db = new MysqliDb($connection);
+    return (int)$db->getValue($scoresTable, 'count(distinct eid)');
+}
+
+function get_placed_count()
+{
+    global $scoresTable, $connection;
+    $db = new MysqliDb($connection);
+    $db->where('scorePlace', 0, '>');
     return (int)$db->getValue($scoresTable, 'count(distinct eid)');
 }
 
@@ -84,12 +99,16 @@ function get_tables_count()
 
 function get_category_stats()
 {
-    global $brewingTable, $connection, $base_url;
+    global $brewingTable, $evalTable, $scoresTable, $connection, $base_url;
     $db = new MysqliDb($connection);
     $query = "SELECT brewCategorySort, 
                      COUNT(*) as total, 
                      SUM(CASE WHEN brewPaid = 1 THEN 1 ELSE 0 END) as paid, 
-                     SUM(CASE WHEN brewReceived = 1 THEN 1 ELSE 0 END) as received 
+                     SUM(CASE WHEN brewReceived = 1 THEN 1 ELSE 0 END) as received,
+                     (SELECT COUNT(*) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewConfirmed = 1) as evaluations_total,
+                     (SELECT COUNT(DISTINCT e.eid) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewConfirmed = 1) as evaluations_distinct,
+                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b3 ON s.eid = b3.id WHERE b3.brewCategorySort = $brewingTable.brewCategorySort AND b3.brewConfirmed = 1) as scores,
+                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b4 ON s.eid = b4.id WHERE b4.brewCategorySort = $brewingTable.brewCategorySort AND b4.brewConfirmed = 1 AND s.scorePlace IS NOT NULL AND s.scorePlace > 0) as placed
               FROM $brewingTable 
               WHERE brewConfirmed = 1 
               GROUP BY brewCategorySort 
@@ -105,7 +124,11 @@ function get_category_stats()
             'name' => $cat_name,
             'total' => (int)$row['total'],
             'paid' => (int)$row['paid'],
-            'received' => (int)$row['received']
+            'received' => (int)$row['received'],
+            'evaluations_total' => (int)$row['evaluations_total'],
+            'evaluations_distinct' => (int)$row['evaluations_distinct'],
+            'scores' => (int)$row['scores'],
+            'placed' => (int)$row['placed']
         ];
     }
     return $stats;
@@ -134,8 +157,10 @@ $scoresheet_name = isset($scoresheet_names[$scoresheet_type]) ? $scoresheet_name
 $entries_ok           = get_entries_count();
 $entries_paid         = get_entries_paid();
 $entries_total        = get_entries_total();
-$evaluations          = get_evaluations_count();
+$evaluations_total    = get_evaluations_total_count();
+$evaluations_distinct = get_evaluations_distinct_count();
 $scores               = get_score_count();
+$placed_total         = get_placed_count();
 $tables_count         = get_tables_count();
 $paid_not_received    = get_entries_paid_not_received();
 $received_not_paid    = get_entries_received_not_paid();
@@ -145,14 +170,24 @@ $category_stats       = get_category_stats();
 <html lang="cs">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin – <?php echo htmlspecialchars($_SESSION['contestName']); ?></title>
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <?php
+    if (CDN) include(INCLUDES . 'load_cdn_libraries.inc.php');
+    else include(INCLUDES . 'load_local_libraries.inc.php');
+    ?>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
     <style>
         body { padding: 20px; }
         .stat-box { text-align: center; padding: 15px 0; }
         .stat-box .stat-num { font-size: 2.5em; font-weight: bold; line-height: 1; }
         .stat-box .stat-label { color: #888; font-size: 0.9em; margin-top: 4px; }
         .links-grid a { margin: 4px; }
+        .tooltip-inner { text-align: left; max-width: 300px; }
     </style>
 </head>
 <body>
@@ -245,15 +280,15 @@ $category_stats       = get_category_stats();
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <?php $eval_class = ($evaluations == $entries_ok) ? 'text-success' : 'text-primary'; ?>
-                        <div class="stat-num <?php echo $eval_class; ?>"><?php echo $evaluations; ?></div>
+                        <?php $eval_class = ($evaluations_distinct == $entries_ok) ? 'text-success' : 'text-primary'; ?>
+                        <div class="stat-num <?php echo $eval_class; ?>"><?php echo $evaluations_total; ?> <small class="text-muted">(<?php echo $evaluations_distinct; ?> / <?php echo $entries_ok; ?>)</small></div>
                         <div class="stat-label">Evaluations</div>
                     </div>
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
                         <?php $score_class = ($scores == $entries_ok) ? 'text-success' : 'text-primary'; ?>
-                        <div class="stat-num <?php echo $score_class; ?>"><?php echo $scores; ?></div>
+                        <div class="stat-num <?php echo $score_class; ?>"><?php echo $scores; ?> <small class="text-muted">(<?php echo $placed_total; ?>)</small></div>
                         <div class="stat-label">Scores entered</div>
                     </div>
                 </div>
@@ -284,15 +319,28 @@ $category_stats       = get_category_stats();
                         <th class="text-center">Entries</th>
                         <th class="text-center">Paid</th>
                         <th class="text-center">Received</th>
+                        <th class="text-center">Evaluations</th>
+                        <th class="text-center">Scores</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($category_stats as $stat): ?>
-                    <tr>
+                    <?php foreach ($category_stats as $stat): 
+                        $tooltip = "<strong>Category:</strong> " . htmlspecialchars($stat['number'] . ' - ' . $stat['name']) . "<br>";
+                        $tooltip .= "<strong>Total Entries:</strong> " . $stat['total'] . "<br>";
+                        $tooltip .= "<strong>Paid:</strong> " . $stat['paid'] . "<br>";
+                        $tooltip .= "<strong>Received:</strong> " . $stat['received'] . "<br>";
+                        $tooltip .= "<strong>Total Evaluations:</strong> " . $stat['evaluations_total'] . "<br>";
+                        $tooltip .= "<strong>Unique Entries Evaluated:</strong> " . $stat['evaluations_distinct'] . " / " . $stat['total'] . "<br>";
+                        $tooltip .= "<strong>Scores Entered:</strong> " . $stat['scores'] . "<br>";
+                        $tooltip .= "<strong>Placed:</strong> " . $stat['placed'];
+                    ?>
+                    <tr data-toggle="tooltip" data-html="true" data-placement="auto top" title="<?php echo htmlspecialchars($tooltip); ?>">
                         <td><?php echo htmlspecialchars($stat['number']); ?> - <?php echo htmlspecialchars($stat['name']); ?></td>
                         <td class="text-center"><?php echo $stat['total']; ?></td>
                         <td class="text-center"><?php echo $stat['paid']; ?></td>
                         <td class="text-center"><?php echo $stat['received']; ?></td>
+                        <td class="text-center"><?php echo $stat['evaluations_total']; ?> (<?php echo $stat['evaluations_distinct']; ?> / <?php echo $stat['total']; ?>)</td>
+                        <td class="text-center"><?php echo $stat['scores']; ?> (<?php echo $stat['placed']; ?>)</td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
