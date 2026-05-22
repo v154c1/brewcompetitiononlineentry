@@ -214,31 +214,35 @@ $category_stats       = get_category_stats();
             <div class="row">
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <div class="stat-num"><?php echo $entries_paid; ?> <small class="text-muted">/ <?php echo $entries_total; ?></small></div>
+                        <?php $paid_class = ($entries_paid == $entries_total) ? 'text-success' : 'text-primary'; ?>
+                        <div class="stat-num <?php echo $paid_class; ?>"><?php echo $entries_paid; ?> <small class="text-muted">/ <?php echo $entries_total; ?></small></div>
                         <div class="stat-label">Paid</div>
                     </div>
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <div class="stat-num"><?php echo $entries_ok; ?> <small class="text-muted">/ <?php echo $entries_total; ?></small></div>
+                        <?php $ok_class = ($entries_ok == $entries_total) ? 'text-success' : 'text-primary'; ?>
+                        <div class="stat-num <?php echo $ok_class; ?>"><?php echo $entries_ok; ?> <small class="text-muted">/ <?php echo $entries_total; ?></small></div>
                         <div class="stat-label">Paid &amp; received</div>
                     </div>
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <div class="stat-num"><?php echo $tables_count; ?></div>
+                        <div class="stat-num text-primary"><?php echo $tables_count; ?></div>
                         <div class="stat-label">Judging tables</div>
                     </div>
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <div class="stat-num"><?php echo $evaluations; ?></div>
+                        <?php $eval_class = ($evaluations == $entries_ok) ? 'text-success' : 'text-primary'; ?>
+                        <div class="stat-num <?php echo $eval_class; ?>"><?php echo $evaluations; ?></div>
                         <div class="stat-label">Evaluations</div>
                     </div>
                 </div>
                 <div class="col-sm-2">
                     <div class="stat-box">
-                        <div class="stat-num"><?php echo $scores; ?></div>
+                        <?php $score_class = ($scores == $entries_ok) ? 'text-success' : 'text-primary'; ?>
+                        <div class="stat-num <?php echo $score_class; ?>"><?php echo $scores; ?></div>
                         <div class="stat-label">Scores entered</div>
                     </div>
                 </div>
