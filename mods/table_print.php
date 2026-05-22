@@ -62,17 +62,19 @@ function get_styles_by_ids($ids)
     return $db->get($stylesTable, null, 'id, brewStyleGroup, brewStyleNum, brewStyle');
 }
 
-function get_entries_for_style($brewStyleGroup, $brewStyleNum)
+function get_entries_for_style($brewStyleGroup, $brewStyleNum, $include_unready = false)
 {
     global $brewingTable, $connection;
     $db = new MysqliDb($connection);
     $db->where('brewCategory', $brewStyleGroup);
     $db->where('brewSubCategory', $brewStyleNum);
-    $db->where('brewPaid', 1);
-    $db->where('brewReceived', 1);
+    if (!$include_unready) {
+        $db->where('brewPaid', 1);
+        $db->where('brewReceived', 1);
+    }
     $db->orderBy('id', 'asc');
     return $db->get($brewingTable, null,
-        'id as brewId, brewABV, brewInfo, brewComments, brewPouring');
+        'id as brewId, brewABV, brewInfo, brewComments, brewPouring, brewPaid, brewReceived');
 }
 
 function showPouring($pouringRaw)
@@ -126,8 +128,11 @@ $styles    = get_styles_by_ids($style_ids);
     <style>
         body { padding: 20px; }
         @page { size: A4 portrait; margin: 1.5cm; }
+        .entry-unready { display: none; background-color: #fff3cd; }
+        .show-unready .entry-unready { display: table-row; }
         @media print {
             .no-print { display: none; }
+            .entry-unready { display: none !important; }
             h4 { page-break-after: avoid; }
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; }
@@ -141,6 +146,9 @@ $styles    = get_styles_by_ids($style_ids);
     <div class="no-print" style="margin-bottom:15px">
         <a href="javascript:window.print()" class="btn btn-default">Print</a>
         <a href="table_info.php" class="btn btn-link">Back</a>
+        <label style="margin-left:15px; font-weight:normal; cursor:pointer">
+            <input type="checkbox" id="toggle-unready"> Show unpaid/unreceived
+        </label>
     </div>
 
     <div class="page-header">
@@ -163,7 +171,7 @@ $styles    = get_styles_by_ids($style_ids);
         <p class="text-muted">No styles assigned to this xtable.</p>
     <?php else: ?>
         <?php foreach ($styles as $style):
-            $entries = get_entries_for_style($style['brewStyleGroup'], $style['brewStyleNum']);
+            $entries = get_entries_for_style($style['brewStyleGroup'], $style['brewStyleNum'], true);
             if ($sort_by_epm) {
                 usort($entries, function($a, $b) use ($saved_epm) {
                     $ea = (isset($saved_epm[$a['brewId']]) && $saved_epm[$a['brewId']] !== '') ? (float)$saved_epm[$a['brewId']] : PHP_FLOAT_MAX;
@@ -192,8 +200,11 @@ $styles    = get_styles_by_ids($style_ids);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($entries as $e): ?>
-                            <tr>
+                        <?php foreach ($entries as $e):
+                            $is_ready = ($e['brewPaid'] == 1 && $e['brewReceived'] == 1);
+                            $row_class = $is_ready ? '' : 'entry-unready';
+                        ?>
+                            <tr class="<?php echo $row_class; ?>">
                                 <td><?php echo htmlspecialchars($e['brewId']); ?></td>
                                 <td><?php echo htmlspecialchars($e['brewABV'] ? $e['brewABV']."%" : ''); ?></td>
                                 <td><?php echo htmlspecialchars(html_entity_decode($e['brewInfo'])); ?></td>
@@ -204,8 +215,15 @@ $styles    = get_styles_by_ids($style_ids);
                                            value="<?php echo htmlspecialchars(isset($saved_epm[$e['brewId']]) ? $saved_epm[$e['brewId']] : ''); ?>"
                                            style="width:55px"></td>
                                 <?php endif; ?>
+                                <?php if ($is_ready): ?>
                                 <td><input type="checkbox"></td>
                                 <td><input type="checkbox"></td>
+                                <?php else: ?>
+                                <td colspan="2" class="no-print text-muted small">
+                                    <?php if (!$e['brewPaid']): ?>Unpaid<?php endif; ?>
+                                    <?php if (!$e['brewReceived']): ?>Not received<?php endif; ?>
+                                </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -222,5 +240,10 @@ $styles    = get_styles_by_ids($style_ids);
     <?php endif; ?>
 
 </div>
+<script>
+document.getElementById('toggle-unready').addEventListener('change', function() {
+    document.body.classList.toggle('show-unready', this.checked);
+});
+</script>
 </body>
 </html>
