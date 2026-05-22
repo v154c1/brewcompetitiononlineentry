@@ -199,10 +199,21 @@ $category_stats       = get_category_stats();
                     <dt>Entry deadline</dt>
                     <dd><?php echo format_date_cs($_SESSION['contestEntryDeadline']); ?></dd>
                 <?php endif; ?>
-                <?php if (!empty($_SESSION['contestJudgeDeadline'])): ?>
-                    <dt>Judging deadline</dt>
-                    <dd><?php echo format_date_cs($_SESSION['contestJudgeDeadline']); ?></dd>
-                <?php endif; ?>
+                <dt>Judging Start</dt>
+                <dd><?php echo (isset($_SESSION['jPrefsJudgingOpen']) && !empty($_SESSION['jPrefsJudgingOpen'])) ? format_date_cs($_SESSION['jPrefsJudgingOpen']) : "<em>not set</em>"; ?></dd>
+                <dt>Judging End</dt>
+                <dd><?php echo (isset($_SESSION['jPrefsJudgingClosed']) && !empty($_SESSION['jPrefsJudgingClosed'])) ? format_date_cs($_SESSION['jPrefsJudgingClosed']) : "<em>not set</em>"; ?></dd>
+                <dt>Judging Status</dt>
+                <dd><?php 
+                    $now = time();
+                    if (isset($_SESSION['jPrefsJudgingOpen']) && isset($_SESSION['jPrefsJudgingClosed']) && $now >= $_SESSION['jPrefsJudgingOpen'] && $now <= $_SESSION['jPrefsJudgingClosed']) {
+                        echo '<span class="label label-success" style="font-size: 1em;">OPEN</span>';
+                    } else {
+                        echo '<span class="label label-danger" style="font-size: 1em;">CLOSED</span>';
+                    }
+                ?></dd>
+                <dt>Table Mode</dt>
+                <dd><?php echo (isset($_SESSION['jPrefsTablePlanning']) && $_SESSION['jPrefsTablePlanning'] == 1) ? '<span class="label label-warning" style="font-size: 1em;">Planning</span>' : '<span class="label label-success" style="font-size: 1em;">Competition</span>'; ?></dd>
             </dl>
         </div>
     </div>
