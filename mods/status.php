@@ -201,7 +201,7 @@ function td($val)
     </tr>
 </table>
 
-<h3>Stoly</h3>
+<h3>Stoly <span class="text-primary" style="margin-left: 10px;">(<?php echo count($tables); ?>)</span></h3>
 <table class="table table-responsive table-striped table-bordered no-footer">
     <tr>
         <th>Stul</th>
@@ -228,13 +228,16 @@ function td($val)
 
         $dupstr = '';
         foreach ($dup as $entry) {
-            $dupstr .= $entry['eid'] . '(' . $entry['count'] . '), ';
+            $dupstr .= '<span class="label label-danger" style="font-size: 1em;">' . $entry['eid'] . ' (' . $entry['count'] . ')</span> ';
         }
+
+        $processed_class = ($processed_entries == $total_entries && $total_entries > 0) ? 'label-success' : 'label-default';
+        $processed_html = '<span class="label ' . $processed_class . '" style="font-size: 1em;">' . $processed_entries . ' / ' . $total_entries . '</span>';
 
         echo "<tr>";
         td($table['tableName']);
         td($style_names ?: '<em>nezarazeno</em>');
-        td(strval($processed_entries) . "/" . $total_entries);
+        td($processed_html);
         td($scoresheet_count);
         td($scores_count);
         td($dupstr);
