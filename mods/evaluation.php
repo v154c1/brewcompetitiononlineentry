@@ -166,23 +166,20 @@ foreach ($tables as $table) {
 
     $empty_entries = get_empty_entries($styles);
 
-    echo '<br>';
     if (count($empty_entries) > 0) {
-        echo '<h3>Vzorky bez hodnocení</h3>';
-        echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th></tr>';
+        echo '<h3>Vzorky bez hodnocení <span class="text-primary" style="margin-left: 10px;">(' . count($empty_entries) . ')</span></h3>';
+        echo '<div style="margin-bottom: 10px;">';
         foreach ($empty_entries as $row_psql) {
-            echo '<tr><td>' . $row_psql['bid'] . '</td></tr>';
+            echo '<span class="label label-default" style="font-size: 1.1em; margin-right: 4px; display: inline-block; margin-bottom: 4px;">' . $row_psql['bid'] . '</span> ';
         }
-        echo '</table>';
+        echo '</div>';
     }
 
     $judges = get_judges($styleIds);
-    echo '<br>';
     if (count($judges) > 0) {
         foreach ($judges as $row_jsql) {
-            echo '<h2>' . htmlspecialchars($row_jsql['brewerLastName'] . ' ' . $row_jsql['brewerFirstName']) . '</h2>';
-
             $entries = get_entries($styleIds, $row_jsql['jid']);
+            echo '<h2>' . htmlspecialchars($row_jsql['brewerLastName'] . ' ' . $row_jsql['brewerFirstName']) . ' <span class="text-primary" style="margin-left: 10px;">(' . count($entries) . ')</span></h2>';
 
             echo '<table class="table table-responsive table-striped table-bordered dataTable no-footer"><tr role="row"><th>Číslo vzorku</th><th>score</th></tr>';
             foreach ($entries as $row_esql) {
