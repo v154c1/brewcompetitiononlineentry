@@ -127,20 +127,23 @@ $styles    = get_styles_by_ids($style_ids);
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <style>
         body { padding: 20px; }
-        @page { size: A4 portrait; margin: 1.5cm; }
+        @page { size: A4 portrait;  }
         .entry-unready { display: none; background-color: #fff3cd; }
         .show-unready .entry-unready { display: table-row; }
         @media print {
+            body { margin: 1.5cm; padding: 0; }
             .no-print { display: none; }
+            .print-only { display: block; }
             .entry-unready { display: none !important; }
             h4 { page-break-after: avoid; }
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; }
             input[type="text"] { border: none; box-shadow: none; background: transparent; padding: 0; width: auto; }
         }
+        .print-only { display: none; }
     </style>
 </head>
-<body>
+<body><div class="counter"></div>
 <div class="container-fluid">
 
     <div class="no-print" style="margin-bottom:15px">
@@ -152,12 +155,13 @@ $styles    = get_styles_by_ids($style_ids);
     </div>
 
     <div class="page-header">
+        <?php if ((isset($_SESSION['contestLogo'])) && (!empty($_SESSION['contestLogo'])) && (file_exists(USER_IMAGES . $_SESSION['contestLogo']))): ?>
+            <img src="<?php echo $base_url; ?>user_images/<?php echo $_SESSION['contestLogo']; ?>" class="pull-right" style="max-height: 80px;" alt="Competition Logo">
+        <?php endif; ?>
         <h2><?php echo htmlspecialchars($table_entry['name']); ?></h2>
         <p>
-            <strong>URL:</strong> <?php echo htmlspecialchars($base_url); ?>
-            &nbsp;&nbsp;
-            <strong>Username:</strong> <?php echo htmlspecialchars($table_entry['username']); ?>
-            &nbsp;&nbsp;
+            <strong>URL:</strong> <?php echo htmlspecialchars($base_url); ?><br>
+            <strong>Username:</strong> <?php echo htmlspecialchars($table_entry['username']); ?><br>
             <strong>Password:</strong> <?php echo htmlspecialchars($table_entry['password']); ?>
         </p>
     </div>

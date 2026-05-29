@@ -110,9 +110,9 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
             .intro {
                 font-size: 10mm;
-
+                width: 160mm;
                 line-height: 11mm;
-                margin-bottom: 20mm;
+                margin-bottom: 8mm;
 
                 .place {
                     font-weight: bold;
@@ -124,14 +124,25 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             .recipient {
                 /*position: absolute;*/
                 /*top: 160mm;*/
-                font-size: 28px;
-                font-style: italic;
-                font-weight: bold;
+                font-size: 40px;
+                font-style: normal;
+                font-weight: normal;
                 /*left: 12mm;*/
+                font-family: Desyrel;
+            }
+
+            .entry-title {
+                font-size: 28px;
+                margin-top: 5mm;
+                /*margin-bottom: 5mm;*/
             }
 
             .entry {
-                font-size: 28px;
+                font-size: 36px;
+                font-style: normal;
+                font-weight: normal;
+                /*left: 12mm;*/
+                font-family: Desyrel;
                 /*font-style: italic;*/
                 /*font-weight: bold;*/
             }
@@ -227,7 +238,7 @@ $cobrewer = str_replace(" ", "&nbsp;", $entry['brewCoBrewer']);
 
 $shortStyles = array(
     "A" => "světlé pivo, spodně kvašené",
-    "B" => "polotmavé a tmavé pivo, spodně kvašené",
+    "B" => "polotmavé a tmavé pivo,<br>spodně kvašené",
     "C" => "svrchně kvašené pivo, mimo<br>pšenice a stout/porter",
     "D" => "pivo pšeničné",
     "E" => "stout/porter",
@@ -293,7 +304,9 @@ if ($score) {
             } ?>
 
         </div>
-        <div class="entry">za vzorek: <?php echo $brewName; ?></div>
+        <div class="entry-title">za vzorek</div>
+        <div class="entry"><?php echo $brewName; ?></div>
+
     </div>
 
 
