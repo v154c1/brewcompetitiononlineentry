@@ -92,15 +92,16 @@ function render_diploma_css()
             position: relative;
             width: 210mm;
             height: 297mm;
-            background-color: #fff;
-            background-size: 100% 100%;
-            background-position: center;
+            background-color: #fff !important;
+            background-size: 100% 100% !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
             overflow: hidden;
             font-family: Arial, sans-serif;
             color: #000;
             line-height: 1.2;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         .diploma-box {
             position: absolute;
@@ -119,7 +120,7 @@ function render_diploma_css()
  */
 function render_diploma_html($bg_url, $boxes, $vars)
 {
-    $html = '<div class="diploma" style="' . ($bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ')' : '') . '">';
+    $html = '<div class="diploma" style="' . ($bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ') !important;' : '') . '">';
     foreach ($boxes as $box) {
         $text  = resolve_template($box['template'] ?? '', $vars);
 
@@ -135,7 +136,7 @@ function render_diploma_html($bg_url, $boxes, $vars)
         if ($align === 'right')   $items = 'flex-end';
 
         $style = sprintf(
-            'left:%.4f%%;top:%.4f%%;width:%.4f%%;height:%.4f%%;font-size:%dpt;color:%s;text-align:%s;justify-content:%s;align-items:%s;',
+            'left:%.4f%%;top:%.4f%%;width:%.4f%%;height:%.4f%%;font-size:%dpt;color:%s !important;text-align:%s;justify-content:%s;align-items:%s;',
             (float)($box['x']        ?? 0),
             (float)($box['y']        ?? 0),
             (float)($box['width']    ?? 60),

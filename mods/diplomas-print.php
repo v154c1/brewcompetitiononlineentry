@@ -81,7 +81,7 @@ if ($show) {
     $db->orderBy('score.scoreEntry',  'desc');
 
     $entries = $db->get($brewingTable . " brewing", null,
-        'brewing.id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');
+        'brewing.id as id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');
 }
 ?>
 <!DOCTYPE html>
@@ -89,6 +89,10 @@ if ($show) {
 <head>
     <meta charset="utf-8">
     <title>Diplomy – tisk</title>
+    <?php
+    if (CDN) include(INCLUDES . 'load_cdn_libraries.inc.php');
+    else include(INCLUDES . 'load_local_libraries.inc.php');
+    ?>
     <style>
         <?php echo render_diploma_css(); ?>
         * { box-sizing: border-box; }
@@ -149,6 +153,7 @@ if ($show) {
         <button type="submit" class="primary">Show</button>
         <?php if ($show && !empty($entries)): ?>
             <button type="button" onclick="window.print()">Print</button>
+            <button type="button" data-toggle="modal" data-target="#idsModal">List IDs</button>
         <?php endif; ?>
     </form>
 
@@ -166,6 +171,30 @@ if ($show) {
 <?php foreach ($entries as $entry) {
     echo render_diploma($entry, $diploma_config, $base_url);
 } ?>
+
+<?php if ($show && !empty($entries)): ?>
+<!-- Modal -->
+<div class="modal fade no-print" id="idsModal" tabindex="-1" role="dialog" aria-labelledby="idsModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="idsModalLabel">IDs of Displayed Diplomas</h4>
+      </div>
+      <div class="modal-body">
+        <p>The following IDs are currently displayed and can be copied:</p>
+        <textarea class="form-control" rows="10" readonly style="resize: vertical; font-family: monospace;"><?php 
+            $ids = array_column($entries, 'id');
+            echo implode(', ', $ids); 
+        ?></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 </body>
 </html>
