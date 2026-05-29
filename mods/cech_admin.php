@@ -339,7 +339,7 @@ $category_stats       = get_category_stats();
                         <td class="text-center"><?php echo $stat['total']; ?></td>
                         <td class="text-center"><?php echo $stat['paid']; ?></td>
                         <td class="text-center"><?php echo $stat['received']; ?></td>
-                        <td class="text-center"><?php echo $stat['evaluations_total']; ?> (<?php echo $stat['evaluations_distinct']; ?> / <?php echo $stat['total']; ?>)</td>
+                        <td class="text-center"><?php echo $stat['evaluations_total']; ?> (<?php echo $stat['evaluations_distinct']; ?> / <?php echo $stat['received']; ?>)</td>
                         <td class="text-center"><?php echo $stat['scores']; ?> (<?php echo $stat['placed']; ?>)</td>
                     </tr>
                     <?php endforeach; ?>
