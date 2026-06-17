@@ -70,13 +70,17 @@ function render_diploma($entry, $diploma_config, $base_url)
     $bg_file    = $tmpl['background'] ?? '';
     $bg_url     = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
 
-    $brewer = html_entity_decode($entry['brewBrewerFirstName']) . ' ' . html_entity_decode($entry['brewBrewerLastName']);
-    if (!empty($entry['brewCoBrewer'])) {
-        $brewer .= ', ' . html_entity_decode($entry['brewCoBrewer']);
+    $brewer1 = html_entity_decode($entry['brewBrewerFirstName']) . ' ' . html_entity_decode($entry['brewBrewerLastName']);
+    $brewer2 = !empty($entry['brewCoBrewer']) ? html_entity_decode($entry['brewCoBrewer']) : '';
+    $brewer = $brewer1;
+    if (!empty($brewer2)) {
+        $brewer .= ', ' . $brewer2;
     }
 
     $vars = [
         'brewer'   => $brewer,
+        'brewer1'  => $brewer1,
+        'brewer2'  => $brewer2,
         'name'     => html_entity_decode($entry['brewName']),
         'place'    => $entry['scorePlace'],
         'score'    => $entry['scoreEntry'] !== null ? (int)$entry['scoreEntry'] * 2 : '',

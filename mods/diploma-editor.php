@@ -399,7 +399,7 @@ foreach ($templates as $t) {
                             <div id="props-fields" style="display:none">
                                 <label>Template</label>
                                 <input id="prop-template" type="text" class="form-control"
-                                       placeholder="${brewer}, ${name}, ${place}, ${score}, ${category}">
+                                       placeholder="${brewer}, ${brewer1}, ${brewer2}, ${name}, ${place}, ${score}, ${category}">
                                 <label>Font size (pt)</label>
                                 <input id="prop-fontsize" type="number" class="form-control" value="18" min="6" max="120">
                                 <label>Color</label>
@@ -449,8 +449,8 @@ foreach ($templates as $t) {
                             <hr>
                             <p class="text-muted" style="font-size:0.85em">
                                 Variables:<br>
-                                <code>${brewer}</code> <code>${name}</code> <code>${place}</code>
-                                <code>${score}</code> <code>${category}</code>
+                                <code>${brewer}</code> <code>${brewer1}</code> <code>${brewer2}</code> <code>${name}</code><br>
+                                <code>${place}</code> <code>${score}</code> <code>${category}</code>
                             </p>
                         </div>
                     </div>
@@ -501,8 +501,16 @@ foreach ($templates as $t) {
         <div class="col-sm-4">
             <h4>Variables</h4>
             <div class="form-group">
-                <label>Brewer</label>
-                <input id="pre-brewer" type="text" class="form-control input-sm" value="Jan Sládek">
+                <label>Brewer (full)</label>
+                <input id="pre-brewer" type="text" class="form-control input-sm" value="Jan Sládek, Petr Novák">
+            </div>
+            <div class="form-group">
+                <label>Brewer 1 (primary)</label>
+                <input id="pre-brewer1" type="text" class="form-control input-sm" value="Jan Sládek">
+            </div>
+            <div class="form-group">
+                <label>Brewer 2 (co-brewer)</label>
+                <input id="pre-brewer2" type="text" class="form-control input-sm" value="Petr Novák">
             </div>
             <div class="form-group">
                 <label>Name of beer</label>
@@ -724,6 +732,8 @@ foreach ($templates as $t) {
         previewContent.innerHTML = '<p class="text-muted">Generating...</p>';
         var vars = {
             brewer:   document.getElementById('pre-brewer').value,
+            brewer1:  document.getElementById('pre-brewer1').value,
+            brewer2:  document.getElementById('pre-brewer2').value,
             name:     document.getElementById('pre-name').value,
             place:    document.getElementById('pre-place').value,
             score:    document.getElementById('pre-score').value,
