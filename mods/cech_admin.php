@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require_once('../paths.php');
 require_once(CONFIG . 'bootstrap.php');
+require_once(MODS . 'cech_common.php');
 
 $admin_role = FALSE;
 if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
@@ -12,6 +13,21 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 if (!$admin_role) {
     echo "<h1>Access denied!</h1>";
     die;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_thresholds') {
+    $gold = (int)($_POST['gold'] ?? 45);
+    $silver = (int)($_POST['silver'] ?? 41);
+    $bronze = (int)($_POST['bronze'] ?? 36);
+
+    $cech_config['score_thresholds'] = [
+        'gold' => $gold,
+        'silver' => $silver,
+        'bronze' => $bronze
+    ];
+    cech_config_save($cech_config);
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?msg=1');
+    exit;
 }
 
 $brewingTable = $prefix . "brewing";
@@ -348,6 +364,22 @@ $category_stats       = get_category_stats();
         </div>
     </div>
 
+    <!-- CECH Settings -->
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Diploma Settings</strong></div>
+        <div class="panel-body">
+            <p>
+                Current thresholds:
+                <span class="label label-warning" style="background-color: #ffd700; color: #000;">Gold: <?php echo $cech_config['score_thresholds']['gold']; ?>+</span>
+                <span class="label label-default" style="background-color: #c0c0c0; color: #000;">Silver: <?php echo $cech_config['score_thresholds']['silver']; ?>–<?php echo $cech_config['score_thresholds']['gold'] - 1; ?></span>
+                <span class="label label-danger" style="background-color: #cd7f32; color: #fff;">Bronze: <?php echo $cech_config['score_thresholds']['bronze']; ?>–<?php echo $cech_config['score_thresholds']['silver'] - 1; ?></span>
+            </p>
+            <button type="button" class="btn btn-sm btn-default" data-toggle="modal" data-target="#thresholdsModal">
+                Change Thresholds
+            </button>
+        </div>
+    </div>
+
     <!-- Links -->
     <div class="panel panel-default">
         <div class="panel-heading"><strong>Judging prep</strong></div>
@@ -373,6 +405,40 @@ $category_stats       = get_category_stats();
             <a href="page.php" class="btn btn-default">Results Page</a>
             <a href="diploma-editor.php" class="btn btn-default">Diploma Editor</a>
             <a href="diplomas-print.php" class="btn btn-default">Print Diplomas</a>
+        </div>
+    </div>
+
+    <!-- Modal for thresholds -->
+    <div class="modal fade" id="thresholdsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <form method="post">
+                    <input type="hidden" name="action" value="update_thresholds">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Diploma Thresholds</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Gold (min score)</label>
+                            <input type="number" name="gold" class="form-control" value="<?php echo $cech_config['score_thresholds']['gold']; ?>" min="1" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Silver (min score)</label>
+                            <input type="number" name="silver" class="form-control" value="<?php echo $cech_config['score_thresholds']['silver']; ?>" min="1" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Bronze (min score)</label>
+                            <input type="number" name="bronze" class="form-control" value="<?php echo $cech_config['score_thresholds']['bronze']; ?>" min="1" max="50">
+                        </div>
+                        <p class="text-muted small">Score intervals are inclusive of the minimum value.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

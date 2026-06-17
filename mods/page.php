@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require('../paths.php');
 require(CONFIG . 'bootstrap.php');
+require_once(MODS . 'cech_common.php');
 
 $admin_role = FALSE;
 if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin_role = TRUE;
@@ -20,10 +21,10 @@ $brewersTable = $prefix . "brewer";
 
 function get_styles()
 {
-    global $brewingTable, $scoresTable, $connection;
+    global $brewingTable, $scoresTable, $connection, $cech_config;
     $db = new MysqliDb($connection);
     $db->join($scoresTable . " score", "score.eid = brewing.id", "INNER");
-    $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+    $db->where('(score.scoreEntry >= ' . $cech_config['score_thresholds']['bronze'] . ' OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
     $db->orderBy('brewing.brewStyle', 'asc');
     $rows = $db->get($brewingTable . " brewing", null, 'DISTINCT brewing.brewStyle');
     return array_column($rows, 'brewStyle');
@@ -31,12 +32,12 @@ function get_styles()
 
 function get_entries_for_style($style)
 {
-    global $brewingTable, $scoresTable, $brewersTable, $connection;
+    global $brewingTable, $scoresTable, $brewersTable, $connection, $cech_config;
     $db = new MysqliDb($connection);
     $db->join($scoresTable . " score", "score.eid = brewing.id", "LEFT");
     $db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
     $db->where('brewing.brewStyle', $style);
-    $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+    $db->where('(score.scoreEntry >= ' . $cech_config['score_thresholds']['bronze'] . ' OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
     $db->orderBy('score.scoreEntry', 'desc');
     return $db->get($brewingTable . " brewing", null,
         'brewing.id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');
@@ -44,17 +45,21 @@ function get_entries_for_style($style)
 
 function diploma_class($scoreEntry)
 {
-    if ($scoreEntry >= 45) return 'goldenDiplom';
-    if ($scoreEntry >= 41) return 'silverDiplom';
-    if ($scoreEntry >= 36) return 'bronzeDiplom';
+    global $cech_config;
+    $thresholds = $cech_config['score_thresholds'];
+    if ($scoreEntry >= $thresholds['gold']) return 'goldenDiplom';
+    if ($scoreEntry >= $thresholds['silver']) return 'silverDiplom';
+    if ($scoreEntry >= $thresholds['bronze']) return 'bronzeDiplom';
     return '';
 }
 
 function diploma_name_cs($scoreEntry)
 {
-    if ($scoreEntry >= 45) return 'Zlato';
-    if ($scoreEntry >= 41) return 'Stříbro';
-    if ($scoreEntry >= 36) return 'Bronz';
+    global $cech_config;
+    $thresholds = $cech_config['score_thresholds'];
+    if ($scoreEntry >= $thresholds['gold']) return 'Zlato';
+    if ($scoreEntry >= $thresholds['silver']) return 'Stříbro';
+    if ($scoreEntry >= $thresholds['bronze']) return 'Bronz';
     return '';
 }
 

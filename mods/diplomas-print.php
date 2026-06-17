@@ -22,6 +22,7 @@ $scoresTable  = $prefix . "judging_scores";
 $brewersTable = $prefix . "brewer";
 
 $diploma_config = isset($cech_config['diploma']) ? $cech_config['diploma'] : [];
+$thresholds = $cech_config['score_thresholds'];
 
 
 $place_options = [
@@ -34,9 +35,9 @@ $place_options = [
 ];
 $color_options = [
     ''       => 'All (diploma level)',
-    'gold'   => 'Gold (≥45)',
-    'silver' => 'Silver (41–44)',
-    'bronze' => 'Bronze (36–40)',
+    'gold'   => 'Gold (≥' . $thresholds['gold'] . ')',
+    'silver' => 'Silver (' . $thresholds['silver'] . '–' . ($thresholds['gold'] - 1) . ')',
+    'bronze' => 'Bronze (' . $thresholds['bronze'] . '–' . ($thresholds['silver'] - 1) . ')',
 ];
 
 $selected_place = isset($_GET['place']) ? $_GET['place'] : '';
@@ -47,7 +48,7 @@ $show           = isset($_GET['show']);
 // Fetch distinct diploma-worthy styles for the style selector
 $db_st = new MysqliDb($connection);
 $db_st->join($scoresTable . " score", "score.eid = brewing.id", "LEFT");
-$db_st->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+$db_st->where('(score.scoreEntry >= ' . $thresholds['bronze'] . ' OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
 $db_st->orderBy('brewing.brewStyle', 'asc');
 $style_rows = $db_st->get($brewingTable . " brewing", null, 'DISTINCT brewing.brewStyle');
 $all_styles = array_column($style_rows, 'brewStyle');
@@ -59,7 +60,7 @@ if ($show) {
     $db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
 
     // Base: diploma-worthy entries only
-    $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+    $db->where('(score.scoreEntry >= ' . $thresholds['bronze'] . ' OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
 
     // Place filter
     if ($selected_place === '1')         $db->where('score.scorePlace', '1');
@@ -69,9 +70,9 @@ if ($show) {
     elseif ($selected_place === 'none')  $db->where('(score.scorePlace IS NULL OR score.scorePlace = "")');
 
     // Color filter
-    if ($selected_color === 'gold')          $db->where('score.scoreEntry', 45, '>=');
-    elseif ($selected_color === 'silver')    { $db->where('score.scoreEntry', 41, '>='); $db->where('score.scoreEntry', 45, '<'); }
-    elseif ($selected_color === 'bronze')    { $db->where('score.scoreEntry', 36, '>='); $db->where('score.scoreEntry', 41, '<'); }
+    if ($selected_color === 'gold')          $db->where('score.scoreEntry', $thresholds['gold'], '>=');
+    elseif ($selected_color === 'silver')    { $db->where('score.scoreEntry', $thresholds['silver'], '>='); $db->where('score.scoreEntry', $thresholds['gold'], '<'); }
+    elseif ($selected_color === 'bronze')    { $db->where('score.scoreEntry', $thresholds['bronze'], '>='); $db->where('score.scoreEntry', $thresholds['silver'], '<'); }
 
     // Style filter
     if ($selected_style !== '') $db->where('brewing.brewStyle', $selected_style);

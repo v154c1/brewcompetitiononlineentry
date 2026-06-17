@@ -7,6 +7,7 @@ require('../paths.php');
 require(CONFIG . 'bootstrap.php');
 require(INCLUDES . 'url_variables.inc.php');
 require(LANG . 'language.lang.php');
+require_once(MODS . 'cech_common.php');
 
 // Define table names using $prefix from site/config.php (included via bootstrap)
 global $prefix;
@@ -54,6 +55,9 @@ function get_filtered_entries($style, $place, $color)
     global $scoresTable;
     global $brewersTable;
     global $connection;
+    global $cech_config;
+
+    $thresholds = $cech_config['score_thresholds'];
 
     $db = new MysqliDb($connection);
     $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
@@ -75,16 +79,16 @@ function get_filtered_entries($style, $place, $color)
 
     if ($color != 'all') {
         if ($color == 'gold') {
-            $db->where('score.scoreEntry', array(45, 50), 'BETWEEN');
+            $db->where('score.scoreEntry', array($thresholds['gold'], 50), 'BETWEEN');
         } elseif ($color == 'silver') {
-            $db->where('score.scoreEntry', array(41, 44), 'BETWEEN');
+            $db->where('score.scoreEntry', array($thresholds['silver'], $thresholds['gold'] - 1), 'BETWEEN');
         } elseif ($color == 'bronze') {
-            $db->where('score.scoreEntry', array(36, 40), 'BETWEEN');
+            $db->where('score.scoreEntry', array($thresholds['bronze'], $thresholds['silver'] - 1), 'BETWEEN');
         } elseif ($color == 'none') {
-            $db->where('score.scoreEntry', 41, '<');
+            $db->where('score.scoreEntry', $thresholds['bronze'], '<');
         }
     } else {
-        $db->where('(score.scoreEntry > 35 OR score.scorePlace IS NOT NULL)');
+        $db->where('(score.scoreEntry >= ' . $thresholds['bronze'] . ' OR score.scorePlace IS NOT NULL)');
     }
 
     $db->orderBy("brewStyle", "asc");

@@ -6,6 +6,7 @@ require('../paths.php');
 require(CONFIG . 'bootstrap.php');
 require(INCLUDES . 'url_variables.inc.php');
 require(LANG . 'language.lang.php');
+require_once(MODS . 'cech_common.php');
 
 $winner_method = $_SESSION['prefsWinnerMethod'];
 $style_set = $_SESSION['prefsStyleSet'];
@@ -251,22 +252,24 @@ $styleShort = $shortStyles[$styleId];
 
 $diplomClass = '';
 if ($score) {
-    if ($score >= 45) {
+    $thresholds = $cech_config['score_thresholds'];
+    if ($score >= $thresholds['gold']) {
         $diplomClass = "diplom-gold";
-    } else if ($score > 40) {
+    } else if ($score >= $thresholds['silver']) {
         $diplomClass = "diplom-silver";
-    } else if ($score > 35) {
+    } else if ($score >= $thresholds['bronze']) {
         $diplomClass = "diplom-bronze";
     }
 }
 
 $diplomLevel = 'Prázdný škopek';
 if ($score) {
-    if ($score >= 45) {
+    $thresholds = $cech_config['score_thresholds'];
+    if ($score >= $thresholds['gold']) {
         $diplomLevel = 'Zlaté kostelecké škopek';
-    } else if ($score > 40) {
+    } else if ($score >= $thresholds['silver']) {
         $diplomLevel = 'Stříbrné kostelecké škopek';
-    } else if ($score > 35) {
+    } else if ($score >= $thresholds['bronze']) {
         $diplomLevel = 'Bronzové kostelecké škopek';
     }
 }

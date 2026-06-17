@@ -1,6 +1,7 @@
 <?php
 
 if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
+    require_once(MODS . 'cech_common.php');
     ?>
     <h2>Diplomová umístění</h2>
 
@@ -27,12 +28,13 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
         global $scoresTable;
         global $brewersTables;
         global $connection;
+        global $cech_config;
 
         $db = new MysqliDb($connection);
         $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
         $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
         $db->where('brewStyle', $style);
-        $db->where('scoreEntry > 35');
+        $db->where('scoreEntry >= ' . $cech_config['score_thresholds']['bronze']);
         $db->orderBy("score.scoreEntry", "desc");
         return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs");
     }
@@ -85,7 +87,7 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
                         </th>
                     </tr>
                     </thead>
-                    <tbody<?php
+                    <tbody><?php
                     foreach ($entries as $row_sql) {
                         $score = '';
                         $diplomClass = '';
@@ -93,13 +95,15 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
                         $scoreEntry = $row_sql['scoreEntry'];
                         if ($scoreEntry) {
                             $score = $scoreEntry * 2;
-                            if ($score >= 90) {
+                            $thresholds = $cech_config['score_thresholds'];
+
+                            if ($scoreEntry >= $thresholds['gold']) {
                                 $diplomClass = "goldenDiplom";
                                 $trophyClass = "text-gold";
-                            } else if ($score > 80) {
+                            } else if ($scoreEntry >= $thresholds['silver']) {
                                 $diplomClass = "silverDiplom";
                                 $trophyClass = "text-silver";
-                            } else if ($score > 70) {
+                            } else if ($scoreEntry >= $thresholds['bronze']) {
                                 $diplomClass = "bronzeDiplom";
                                 $trophyClass = "text-bronze";
                             }

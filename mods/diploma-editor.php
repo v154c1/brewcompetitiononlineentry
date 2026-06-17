@@ -218,11 +218,13 @@ $place_options = [
     'any'  => 'Any placed',
     'none' => 'Not placed',
 ];
+
+$thresholds = $cech_config['score_thresholds'];
 $color_options = [
     ''       => 'No condition',
-    'gold'   => 'Gold (≥45)',
-    'silver' => 'Silver (41–44)',
-    'bronze' => 'Bronze (36–40)',
+    'gold'   => 'Gold (≥' . $thresholds['gold'] . ')',
+    'silver' => 'Silver (' . $thresholds['silver'] . '–' . ($thresholds['gold'] - 1) . ')',
+    'bronze' => 'Bronze (' . $thresholds['bronze'] . '–' . ($thresholds['silver'] - 1) . ')',
 ];
 
 function condition_label($place_options, $color_options, $t)

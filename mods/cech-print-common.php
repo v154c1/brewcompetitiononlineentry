@@ -28,9 +28,13 @@ function matches_template($t, $score_place, $score_entry)
 
     $s = (float)$score_entry;
     $color_ok = true;
-    if ($color === 'gold')         $color_ok = $s >= 45;
-    elseif ($color === 'silver')   $color_ok = $s >= 41 && $s < 45;
-    elseif ($color === 'bronze')   $color_ok = $s >= 36 && $s < 41;
+
+    global $cech_config;
+    $thresholds = $cech_config['score_thresholds'] ?? ['gold' => 45, 'silver' => 41, 'bronze' => 36];
+
+    if ($color === 'gold')         $color_ok = $s >= $thresholds['gold'];
+    elseif ($color === 'silver')   $color_ok = $s >= $thresholds['silver'] && $s < $thresholds['gold'];
+    elseif ($color === 'bronze')   $color_ok = $s >= $thresholds['bronze'] && $s < $thresholds['silver'];
 
     return $place_ok && $color_ok;
 }

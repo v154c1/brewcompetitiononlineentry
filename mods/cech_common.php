@@ -3,9 +3,21 @@
 define('CECH_CONFIG_PATH', __DIR__ . '/.cech_config.json');
 
 function cech_config_load(): array {
-    if (!file_exists(CECH_CONFIG_PATH)) return [];
-    $data = json_decode(file_get_contents(CECH_CONFIG_PATH), true);
-    return is_array($data) ? $data : [];
+    $data = [];
+    if (file_exists(CECH_CONFIG_PATH)) {
+        $data = json_decode(file_get_contents(CECH_CONFIG_PATH), true);
+        if (!is_array($data)) $data = [];
+    }
+
+    if (!isset($data['score_thresholds'])) {
+        $data['score_thresholds'] = [
+            'gold' => 45,
+            'silver' => 41,
+            'bronze' => 36
+        ];
+    }
+
+    return $data;
 }
 
 function cech_config_save(array $config): bool {

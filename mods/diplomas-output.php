@@ -7,6 +7,7 @@ require('../paths.php');
 require(CONFIG . 'bootstrap.php');
 require(INCLUDES . 'url_variables.inc.php');
 require(LANG . 'language.lang.php');
+require_once(MODS . 'cech_common.php');
 
 $winner_method = $_SESSION['prefsWinnerMethod'];
 $style_set = $_SESSION['prefsStyleSet'];
@@ -56,12 +57,16 @@ function get_entries($style)
     global $scoresTable;
     global $brewersTables;
     global $connection;
+    global $cech_config;
+
+    $thresholds = $cech_config['score_thresholds'];
+    $bronze_min = $thresholds['bronze'];
 
     $db = new MysqliDb($connection);
     $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
     $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
     $db->where('brewStyle', $style);
-    $db->where('scoreEntry > 35 or scorePlace is not null');
+    $db->where('(scoreEntry >= ' . $bronze_min . ' or scorePlace is not null)');
     $db->orderBy("score.scoreEntry", "desc");
     return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs, score.scorePlace");
 }
