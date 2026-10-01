@@ -102,23 +102,26 @@ function get_category_stats()
     global $brewingTable, $evalTable, $scoresTable, $connection, $base_url;
     $db = new MysqliDb($connection);
     $query = "SELECT brewCategorySort, 
+                     brewCategory,
+                     brewSubCategory,
+                     brewStyle,
                      COUNT(*) as total, 
                      SUM(CASE WHEN brewPaid = 1 THEN 1 ELSE 0 END) as paid, 
                      SUM(CASE WHEN brewReceived = 1 THEN 1 ELSE 0 END) as received,
-                     (SELECT COUNT(*) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewConfirmed = 1) as evaluations_total,
-                     (SELECT COUNT(DISTINCT e.eid) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewConfirmed = 1) as evaluations_distinct,
-                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b3 ON s.eid = b3.id WHERE b3.brewCategorySort = $brewingTable.brewCategorySort AND b3.brewConfirmed = 1) as scores,
-                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b4 ON s.eid = b4.id WHERE b4.brewCategorySort = $brewingTable.brewCategorySort AND b4.brewConfirmed = 1 AND s.scorePlace IS NOT NULL AND s.scorePlace > 0) as placed
+                     (SELECT COUNT(*) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewSubCategory = $brewingTable.brewSubCategory AND b2.brewConfirmed = 1) as evaluations_total,
+                     (SELECT COUNT(DISTINCT e.eid) FROM $evalTable e JOIN $brewingTable b2 ON e.eid = b2.id WHERE b2.brewCategorySort = $brewingTable.brewCategorySort AND b2.brewSubCategory = $brewingTable.brewSubCategory AND b2.brewConfirmed = 1) as evaluations_distinct,
+                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b3 ON s.eid = b3.id WHERE b3.brewCategorySort = $brewingTable.brewCategorySort AND b3.brewSubCategory = $brewingTable.brewSubCategory AND b3.brewConfirmed = 1) as scores,
+                     (SELECT COUNT(DISTINCT s.eid) FROM $scoresTable s JOIN $brewingTable b4 ON s.eid = b4.id WHERE b4.brewCategorySort = $brewingTable.brewCategorySort AND b4.brewSubCategory = $brewingTable.brewSubCategory AND b4.brewConfirmed = 1 AND s.scorePlace IS NOT NULL AND s.scorePlace > 0) as placed
               FROM $brewingTable 
               WHERE brewConfirmed = 1 
-              GROUP BY brewCategorySort 
-              ORDER BY brewCategorySort ASC";
+              GROUP BY brewCategorySort, brewSubCategory, brewCategory, brewStyle 
+              ORDER BY brewCategorySort ASC, brewSubCategory ASC";
     $results = $db->rawQuery($query);
 
     $stats = [];
     foreach ($results as $row) {
-        $cat_num = $row['brewCategorySort'];
-        $cat_name = style_convert($cat_num, 1, $base_url);
+        $cat_num = (!empty($row['brewCategorySort']) ? $row['brewCategorySort'] : $row['brewCategory']) . $row['brewSubCategory'];
+        $cat_name = !empty($row['brewStyle']) ? $row['brewStyle'] : style_convert($row['brewCategorySort'], 1, $base_url);
         $stats[] = [
             'number' => $cat_num,
             'name' => $cat_name,
