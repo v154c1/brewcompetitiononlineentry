@@ -51,6 +51,8 @@ if (!$matched) {
     die;
 }
 
+$orientation = (isset($matched['orientation']) && $matched['orientation'] === 'landscape') ? 'landscape' : 'portrait';
+
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -67,7 +69,7 @@ if (!$matched) {
         }
         .no-print a { color: #fff; margin-right: 10px; }
         .diploma { margin: 20px auto; }
-        @page { size: A4 portrait; margin: 0; }
+        @page { size: A4 <?php echo $orientation; ?>; margin: 0; }
         @media print {
             .no-print { display: none; }
             body { background: none; }

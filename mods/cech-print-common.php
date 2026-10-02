@@ -62,9 +62,10 @@ function render_diploma($entry, $diploma_config, $base_url)
     $tmpl = find_matching_template($templates, $entry['scorePlace'], $entry['scoreEntry']);
     if (!$tmpl) return '';
 
-    $boxes      = $tmpl['boxes']      ?? [];
-    $bg_file    = $tmpl['background'] ?? '';
-    $bg_url     = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
+    $boxes       = $tmpl['boxes']       ?? [];
+    $bg_file     = $tmpl['background']  ?? '';
+    $bg_url      = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
+    $orientation = $tmpl['orientation'] ?? 'portrait';
 
     $brewer = html_entity_decode($entry['brewBrewerFirstName']) . ' ' . html_entity_decode($entry['brewBrewerLastName']);
     if (!empty($entry['brewCoBrewer'])) {
@@ -79,7 +80,7 @@ function render_diploma($entry, $diploma_config, $base_url)
         'category' => $category_names[$entry['brewStyle']] ?? html_entity_decode($entry['brewStyle']),
     ];
 
-    return render_diploma_html($bg_url, $boxes, $vars);
+    return render_diploma_html($bg_url, $boxes, $vars, $orientation);
 }
 
 /**
@@ -103,6 +104,24 @@ function render_diploma_css()
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
+        .diploma.landscape {
+            width: 297mm;
+            height: 210mm;
+            page: landscape-page;
+        }
+        .diploma.portrait {
+            width: 210mm;
+            height: 297mm;
+            page: portrait-page;
+        }
+        @page landscape-page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        @page portrait-page {
+            size: A4 portrait;
+            margin: 0;
+        }
         .diploma-box {
             position: absolute;
             box-sizing: border-box;
@@ -118,9 +137,10 @@ function render_diploma_css()
 /**
  * Renders the HTML structure for a diploma using provided data.
  */
-function render_diploma_html($bg_url, $boxes, $vars)
+function render_diploma_html($bg_url, $boxes, $vars, $orientation = 'portrait')
 {
-    $html = '<div class="diploma" style="' . ($bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ') !important;' : '') . '">';
+    $orientation_class = ($orientation === 'landscape') ? 'landscape' : 'portrait';
+    $html = '<div class="diploma ' . $orientation_class . '" style="' . ($bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ') !important;' : '') . '">';
     foreach ($boxes as $box) {
         $text  = resolve_template($box['template'] ?? '', $vars);
 

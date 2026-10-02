@@ -38,11 +38,17 @@ $color_options = [
     'silver' => 'Silver (41–44)',
     'bronze' => 'Bronze (36–40)',
 ];
+$orientation_options = [
+    ''          => 'All (orientations)',
+    'portrait'  => 'Portrait',
+    'landscape' => 'Landscape',
+];
 
-$selected_place = isset($_GET['place']) ? $_GET['place'] : '';
-$selected_color = isset($_GET['color']) ? $_GET['color'] : '';
-$selected_style = isset($_GET['style']) ? $_GET['style'] : '';
-$show           = isset($_GET['show']);
+$selected_place       = isset($_GET['place']) ? $_GET['place'] : '';
+$selected_color       = isset($_GET['color']) ? $_GET['color'] : '';
+$selected_style       = isset($_GET['style']) ? $_GET['style'] : '';
+$selected_orientation = isset($_GET['orientation']) ? $_GET['orientation'] : '';
+$show                 = isset($_GET['show']);
 
 // Fetch distinct diploma-worthy styles for the style selector
 $db_st = new MysqliDb($connection);
@@ -53,6 +59,7 @@ $style_rows = $db_st->get($brewingTable . " brewing", null, 'DISTINCT brewing.br
 $all_styles = array_column($style_rows, 'brewStyle');
 
 $entries = [];
+$orientations_present = [];
 if ($show) {
     $db = new MysqliDb($connection);
     $db->join($scoresTable  . " score",  "score.eid = brewing.id",          "LEFT");
@@ -80,8 +87,26 @@ if ($show) {
     $db->orderBy('score.scorePlace',  'asc');
     $db->orderBy('score.scoreEntry',  'desc');
 
-    $entries = $db->get($brewingTable . " brewing", null,
+    $raw_entries = $db->get($brewingTable . " brewing", null,
         'brewing.id as id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');
+
+    $templates = isset($diploma_config['templates']) ? $diploma_config['templates'] : [];
+
+    foreach ($raw_entries as $entry) {
+        $tmpl = find_matching_template($templates, $entry['scorePlace'], $entry['scoreEntry']);
+        if (!$tmpl) continue;
+        $tmpl_orientation = (isset($tmpl['orientation']) && $tmpl['orientation'] === 'landscape') ? 'landscape' : 'portrait';
+        if ($selected_orientation !== '' && $tmpl_orientation !== $selected_orientation) {
+            continue;
+        }
+        $entries[] = $entry;
+        $orientations_present[$tmpl_orientation] = true;
+    }
+}
+
+$page_orientation = 'portrait';
+if ($selected_orientation === 'landscape' || ($selected_orientation === '' && count($orientations_present) === 1 && isset($orientations_present['landscape']))) {
+    $page_orientation = 'landscape';
 }
 ?>
 <!DOCTYPE html>
@@ -105,7 +130,7 @@ if ($show) {
         .no-print button.primary { background: #337ab7; border-color: #2e6da4; color: #fff; }
         .text-muted { color: #888; }
         .diploma { margin: 20px auto; }
-        @page { size: A4 portrait; margin: 0; }
+        @page { size: A4 <?php echo $page_orientation; ?>; margin: 0; }
         @media print {
             body { background: none; padding: 0; }
             .no-print { display: none; }
@@ -145,6 +170,15 @@ if ($show) {
             <select name="color">
                 <?php foreach ($color_options as $val => $lbl): ?>
                     <option value="<?php echo $val; ?>" <?php if ($selected_color === $val) echo 'selected'; ?>>
+                        <?php echo htmlspecialchars($lbl); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+        <label>Orientace
+            <select name="orientation">
+                <?php foreach ($orientation_options as $val => $lbl): ?>
+                    <option value="<?php echo $val; ?>" <?php if ($selected_orientation === $val) echo 'selected'; ?>>
                         <?php echo htmlspecialchars($lbl); ?>
                     </option>
                 <?php endforeach; ?>

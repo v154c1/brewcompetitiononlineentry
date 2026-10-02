@@ -50,16 +50,15 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
           content="<?php echo "http" . ((!empty($_SERVER['HTTPS'])) ? "s://" : "://") . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>"/>
     <style>
         .goldenDiplom {
-            background-color: gold;
+            background-color: gold !important;
         }
 
         .silverDiplom {
-            background-color: silver;
-
+            background-color: silver !important;
         }
 
         .bronzeDiplom {
-            background-color: #bfa396;
+            background-color: #bfa396 !important;
         }
 
 
@@ -94,10 +93,12 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
             width: 210mm; /* A4 width */
             height: 297mm; /* A4 height */
             /*background-image: url("../images/diploma.png");*/
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .text {
@@ -152,15 +153,16 @@ if ((isset($_SESSION['loginUsername'])) && ($_SESSION['userLevel'] <= 1)) $admin
 
         @media print {
             body {
-                -webkit-print-color-adjust: exact; /* For Chrome */
-                print-color-adjust: exact; /* Standard property */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .diploma {
-                /*background-image: url('../images/diploma.jpg'); !* Re-declare the background *!*/
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
+                background-size: cover !important;
+                background-position: center !important;
+                background-repeat: no-repeat !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
 

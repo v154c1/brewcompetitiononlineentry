@@ -51,10 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 
 // --- POST: render preview via fetch (?action=preview) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'preview') {
-    $payload = json_decode(file_get_contents('php://input'), true);
-    $boxes   = $payload['boxes'] ?? [];
-    $vars    = $payload['vars']  ?? [];
-    $bg_file = $payload['background'] ?? '';
+    $payload     = json_decode(file_get_contents('php://input'), true);
+    $boxes       = $payload['boxes'] ?? [];
+    $vars        = $payload['vars']  ?? [];
+    $bg_file     = $payload['background'] ?? '';
+    $orientation = $payload['orientation'] ?? 'portrait';
 
     // Substitution for category name
     if (isset($vars['category'])) {
@@ -69,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     $bg_url  = $bg_file ? $base_url . 'user_images/' . rawurlencode($bg_file) : '';
 
     header('Content-Type: text/html; charset=utf-8');
-    echo render_diploma_html($bg_url, $boxes, $vars);
+    echo render_diploma_html($bg_url, $boxes, $vars, $orientation);
     exit;
 }
 
@@ -81,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $tpls   = &$cech_config['diploma']['templates'];
         $new_id = empty($tpls) ? 1 : max(array_column($tpls, 'id')) + 1;
         $tpls[] = ['id' => $new_id, 'name' => 'Diplom ' . $new_id,
-                   'background' => '', 'place' => '', 'color' => '', 'boxes' => []];
+                   'background' => '', 'place' => '', 'color' => '', 'orientation' => 'portrait', 'boxes' => []];
         unset($tpls);
         cech_config_save($cech_config);
         header('Location: ' . $_SERVER['PHP_SELF'] . '?template=' . $new_id);
@@ -104,9 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $tmpl_id = (int)($_POST['template_id'] ?? 0);
         foreach ($cech_config['diploma']['templates'] as &$t) {
             if ($t['id'] === $tmpl_id) {
-                $t['name']  = trim(isset($_POST['name'])  ? $_POST['name']  : '');
-                $t['place'] = isset($_POST['place']) ? $_POST['place'] : '';
-                $t['color'] = isset($_POST['color']) ? $_POST['color'] : '';
+                $t['name']        = trim(isset($_POST['name'])  ? $_POST['name']  : '');
+                $t['place']       = isset($_POST['place']) ? $_POST['place'] : '';
+                $t['color']       = isset($_POST['color']) ? $_POST['color'] : '';
+                $t['orientation'] = (isset($_POST['orientation']) && $_POST['orientation'] === 'landscape') ? 'landscape' : 'portrait';
                 break;
             }
         }
@@ -224,6 +226,10 @@ $color_options = [
     'silver' => 'Silver (41–44)',
     'bronze' => 'Bronze (36–40)',
 ];
+$orientation_options = [
+    'portrait'  => 'Portrait',
+    'landscape' => 'Landscape',
+];
 
 function condition_label($place_options, $color_options, $t)
 {
@@ -298,13 +304,14 @@ foreach ($templates as $t) {
             <?php else: ?>
                 <table class="table table-condensed table-bordered" style="margin-bottom:10px">
                     <thead>
-                        <tr><th>Name</th><th>Conditions</th><th style="width:1px;white-space:nowrap">Actions</th></tr>
+                        <tr><th>Name</th><th>Conditions</th><th>Orientation</th><th style="width:1px;white-space:nowrap">Actions</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($templates as $t): ?>
                             <tr class="<?php echo ($current_id === $t['id']) ? 'info' : ''; ?>">
                                 <td><?php echo htmlspecialchars($t['name']); ?></td>
                                 <td><small class="text-muted"><?php echo htmlspecialchars(condition_label($place_options, $color_options, $t)); ?></small></td>
+                                <td><small class="text-muted"><?php echo htmlspecialchars(ucfirst($t['orientation'] ?? 'portrait')); ?></small></td>
                                 <td>
                                     <a href="?template=<?php echo $t['id']; ?>" class="btn btn-xs btn-primary">Edit</a>
                                     <form method="post" style="display:inline" onsubmit="return confirm('Delete this diploma template?')">
@@ -366,6 +373,17 @@ foreach ($templates as $t) {
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="form-group" style="margin-right:8px">
+                        <label style="margin-right:4px">Orientation</label>
+                        <select name="orientation" class="form-control input-sm">
+                            <?php foreach ($orientation_options as $val => $lbl): ?>
+                                <option value="<?php echo $val; ?>"
+                                    <?php if (($current_template['orientation'] ?? 'portrait') === $val) echo 'selected'; ?>>
+                                    <?php echo htmlspecialchars($lbl); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
                 </form>
 
@@ -386,7 +404,7 @@ foreach ($templates as $t) {
                 <div class="row">
                     <div class="col-sm-8">
                         <div id="diploma-wrapper">
-                            <div id="diploma-inner" class="diploma"
+                            <div id="diploma-inner" class="diploma <?php echo ($current_template['orientation'] ?? 'portrait') === 'landscape' ? 'landscape' : 'portrait'; ?>"
                                  style="<?php echo $bg_url ? 'background-image:url(' . htmlspecialchars($bg_url) . ')' : ''; ?>">
                             </div>
                         </div>
@@ -733,7 +751,8 @@ foreach ($templates as $t) {
             body: JSON.stringify({
                 boxes: boxes,
                 vars: vars,
-                background: <?php echo json_encode($current_template['background'] ?? ''); ?>
+                background: <?php echo json_encode($current_template['background'] ?? ''); ?>,
+                orientation: <?php echo json_encode($current_template['orientation'] ?? 'portrait'); ?>
             })
         })
         .then(function(r) { return r.text(); })
