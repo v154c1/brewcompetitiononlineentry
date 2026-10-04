@@ -63,7 +63,7 @@ $orientations_present = [];
 if ($show) {
     $db = new MysqliDb($connection);
     $db->join($scoresTable  . " score",  "score.eid = brewing.id",          "LEFT");
-    $db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
+    $db->join($brewersTable . " brewer", "brewer.uid = brewing.brewBrewerID", "LEFT");
 
     // Base: diploma-worthy entries only
     $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');

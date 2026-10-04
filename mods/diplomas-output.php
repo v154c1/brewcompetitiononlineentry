@@ -59,7 +59,7 @@ function get_entries($style)
 
     $db = new MysqliDb($connection);
     $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
-    $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
+    $db->join("$brewersTables brewers", "brewers.uid=brewing.brewBrewerID", "LEFT");
     $db->where('brewStyle', $style);
     $db->where('scoreEntry > 35 or scorePlace is not null');
     $db->orderBy("score.scoreEntry", "desc");

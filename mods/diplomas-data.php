@@ -60,7 +60,7 @@ function get_filtered_entries($style, $place, $color)
 
     $db = new MysqliDb($connection);
     $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
-    $db->join("$brewersTable brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
+    $db->join("$brewersTable brewers", "brewers.uid=brewing.brewBrewerID", "LEFT");
     
     if ($style != 'all') {
         $db->where('brewStyle', $style);

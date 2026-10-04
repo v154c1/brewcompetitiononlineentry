@@ -34,7 +34,7 @@ function get_entries_for_style($style)
     global $brewingTable, $scoresTable, $brewersTable, $connection;
     $db = new MysqliDb($connection);
     $db->join($scoresTable . " score", "score.eid = brewing.id", "LEFT");
-    $db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
+    $db->join($brewersTable . " brewer", "brewer.uid = brewing.brewBrewerID", "LEFT");
     $db->where('brewing.brewStyle', $style);
     $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
     $db->orderBy('score.scoreEntry', 'desc');

@@ -29,7 +29,7 @@ $brewersTable = $prefix . "brewer";
 
 $db = new MysqliDb($connection);
 $db->join($scoresTable  . " score",  "score.eid = brewing.id",          "LEFT");
-$db->join($brewersTable . " brewer", "brewer.id = brewing.brewBrewerID", "LEFT");
+$db->join($brewersTable . " brewer", "brewer.uid = brewing.brewBrewerID", "LEFT");
 $db->where('brewing.id', $brew_id);
 $entry = $db->getOne($brewingTable . " brewing",
     'brewing.id, brewBrewerFirstName, brewBrewerLastName, brewCoBrewer, brewName, brewStyle, score.scoreEntry, score.scorePlace');

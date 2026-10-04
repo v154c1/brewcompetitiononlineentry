@@ -30,7 +30,7 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
 
         $db = new MysqliDb($connection);
         $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
-        $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
+        $db->join("$brewersTables brewers", "brewers.uid=brewing.brewBrewerID", "LEFT");
         $db->where('brewStyle', $style);
         $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
         $db->orderBy("CASE WHEN score.scorePlace IN (1, 2, 3) THEN score.scorePlace ELSE 4 END", "asc");

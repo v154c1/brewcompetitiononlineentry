@@ -201,7 +201,7 @@ function get_entry($entry_id)
     global $brewingTable;
     $db = new MysqliDb($connection);
     $db->join("$scoresTable scores", 'brewing.id = scores.eid', 'LEFT');
-    $db->join("$brewersTable brewers", 'brewers.id = brewing.brewBrewerID', 'LEFT');
+    $db->join("$brewersTable brewers", 'brewers.uid = brewing.brewBrewerID', 'LEFT');
     $db->where('brewing.id', $entry_id);
 //    $db->orderBy("brewing.id", "asc");
     //$db->orderBy("brewStyle", "asc");
