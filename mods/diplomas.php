@@ -32,9 +32,10 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
         $db->join("$scoresTable score", "score.eid=brewing.id", "LEFT");
         $db->join("$brewersTables brewers", "brewers.id=brewing.brewBrewerID", "LEFT");
         $db->where('brewStyle', $style);
-        $db->where('scoreEntry > 35');
+        $db->where('(score.scoreEntry > 35 OR (score.scorePlace IS NOT NULL AND score.scorePlace != ""))');
+        $db->orderBy("CASE WHEN score.scorePlace IN (1, 2, 3) THEN score.scorePlace ELSE 4 END", "asc");
         $db->orderBy("score.scoreEntry", "desc");
-        return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, brewerClubs");
+        return $db->get("$brewingTable brewing", null, "brewing.id as brewId, brewBrewerLastName, brewBrewerFirstName, brewName, brewCoBrewer, brewStyle, brewJudgingNumber, brewPaid, brewReceived, score.scoreEntry, score.scorePlace, brewerClubs");
     }
 
     $styles = get_styles();
@@ -89,6 +90,7 @@ if (judging_winner_display($_SESSION['prefsWinnerDelay'])) {
                     foreach ($entries as $row_sql) {
                         $score = '';
                         $diplomClass = '';
+                        $trophyClass = '';
 
                         $scoreEntry = $row_sql['scoreEntry'];
                         if ($scoreEntry) {
