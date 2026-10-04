@@ -132,7 +132,7 @@ function get_judges($styleIds)
     global $evalTable, $brewersTables, $connection;
     if (empty($styleIds)) return [];
     $db = new MysqliDb($connection);
-    $db->join("$brewersTables brewers", "brewers.id=eval.evalJudgeInfo", "LEFT");
+    $db->join("$brewersTables brewers", "brewers.uid=eval.evalJudgeInfo", "LEFT");
     $db->where('eval.evalStyle', $styleIds, 'IN');
     $db->orderBy('brewers.brewerLastName', 'asc');
     return $db->get("$evalTable eval", null, "DISTINCT eval.evalJudgeInfo as jid, brewers.brewerFirstName, brewers.brewerLastName");
